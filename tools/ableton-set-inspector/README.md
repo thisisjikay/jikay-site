@@ -16,20 +16,19 @@ A private, browser-based MVP for inspecting Ableton Live Set (`.als`) files with
 - External routing notices
 - Compact and full-detail modes
 - Search, text export, JSON export and print/PDF layout
-- Built-in demo report
 
 ## Run locally
 
 The app has no build step.
 
 1. Download or clone the folder.
-2. Serve the folder locally (browser-native ES modules do not run reliably from `file://` URLs):
+2. Open `index.html` directly, or serve the folder locally:
 
 ```bash
 python3 -m http.server 8080
 ```
 
-3. Open `http://localhost:8080` and drop an `.als` file onto the page.
+3. If serving locally, open `http://localhost:8080`, then drop an `.als` file onto the page.
 
 ## Deploy to GitHub Pages
 

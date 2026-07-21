@@ -1,11 +1,13 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import {
+await import("../src/parser/core.js");
+
+const {
   assignTrackDisplayIndexes,
   calculateArrangementLength,
   classifyClipContext,
-} from "../src/parser/core.js";
+} = globalThis.AbletonSetParserCore;
 
 function element(tagName, parentElement = null) {
   return { tagName, parentElement };

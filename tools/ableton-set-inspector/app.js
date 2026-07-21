@@ -1,7 +1,7 @@
-import { assignTrackDisplayIndexes, calculateArrangementLength, classifyClipContext } from "./src/parser/core.js";
-
 (() => {
   "use strict";
+
+  const { assignTrackDisplayIndexes, calculateArrangementLength, classifyClipContext } = globalThis.AbletonSetParserCore;
 
   const state = {
     report: null,
@@ -18,7 +18,6 @@ import { assignTrackDisplayIndexes, calculateArrangementLength, classifyClipCont
     dropZone: $("#dropZone"),
     fileInput: $("#fileInput"),
     chooseButton: $("#chooseButton"),
-    demoButton: $("#demoButton"),
     supportNote: $("#supportNote"),
     processingSection: $("#processingSection"),
     processingTitle: $("#processingTitle"),
@@ -156,10 +155,6 @@ import { assignTrackDisplayIndexes, calculateArrangementLength, classifyClipCont
     els.chooseButton.addEventListener("click", (event) => {
       event.stopPropagation();
       els.fileInput.click();
-    });
-    els.demoButton.addEventListener("click", (event) => {
-      event.stopPropagation();
-      loadDemo();
     });
     els.dropZone.addEventListener("click", (event) => {
       if (event.target.closest("button")) return;
@@ -1066,7 +1061,7 @@ import { assignTrackDisplayIndexes, calculateArrangementLength, classifyClipCont
 
     els.reportFilename.textContent = report.file.name;
     els.reportSubhead.textContent = `${formatBytes(report.file.size)} • ${report.live.creator} • scanned ${formatDateTime(report.generatedAt)}`;
-    els.scanStatus.textContent = report.file.name === "Demo Project.als" ? "DEMO REPORT" : "SET INSPECTED LOCALLY";
+    els.scanStatus.textContent = "SET INSPECTED LOCALLY";
 
     const summaryItems = [
       [formatLiveVersion(report), "Live version"],
@@ -1161,11 +1156,11 @@ import { assignTrackDisplayIndexes, calculateArrangementLength, classifyClipCont
           const devices = report.devices.filter((device) => device.trackId === track.id);
           const searchText = `${track.name} ${track.type} ${track.inputRouting || ""} ${track.outputRouting || ""} ${devices.map((device) => device.name).join(" ")}`;
           return `
-            <div class="track-row" data-searchable="${escapeAttr(searchText)}">
+            <div class="track-row" style="--track-color:${escapeAttr(trackColour(track.color))}" data-searchable="${escapeAttr(searchText)}">
               <button class="track-summary" type="button" aria-expanded="false">
                 <span class="track-number">${escapeHtml(track.displayIndex)}</span>
                 <span class="track-name" style="padding-left:${Math.min(depth, 5) * 18}px">
-                  <span class="track-color" style="--track-color:${escapeAttr(trackColour(track.color))}"></span>
+                  <span class="track-color"></span>
                   <span>${escapeHtml(track.name)}</span>
                 </span>
                 <span class="track-type">${escapeHtml(titleCase(track.type))}</span>
@@ -1484,25 +1479,6 @@ import { assignTrackDisplayIndexes, calculateArrangementLength, classifyClipCont
     setTimeout(() => URL.revokeObjectURL(url), 500);
   }
 
-  async function loadDemo() {
-    try {
-      showProcessing("Loading demo…", "Creating a representative Live Set report.", 35);
-      await delay(100);
-      const doc = parseXml(DEMO_XML);
-      state.report = parseAbletonDocument(doc, {
-        name: "Demo Project.als",
-        size: new Blob([DEMO_XML]).size,
-        lastModified: Date.now(),
-      });
-      state.sourceXml = DEMO_XML;
-      showProcessing("Building report…", "Preparing tracks, devices and media.", 85);
-      await delay(100);
-      showReport();
-    } catch (error) {
-      showError(error);
-    }
-  }
-
   function userError(message, cause = null) {
     const error = new Error(message, cause ? { cause } : undefined);
     error.userFacing = true;
@@ -1743,37 +1719,6 @@ import { assignTrackDisplayIndexes, calculateArrangementLength, classifyClipCont
     button.textContent = label;
     setTimeout(() => { button.textContent = original; }, 1300);
   }
-
-  const DEMO_XML = `<?xml version="1.0" encoding="UTF-8"?>
-<Ableton MajorVersion="5" MinorVersion="12.4_3" SchemaChangeCount="12" Creator="Ableton Live 12.4.3">
-  <LiveSet>
-    <Tracks>
-      <GroupTrack Id="1">
-        <Name><EffectiveName Value="DRUMS"/><UserName Value="DRUMS"/></Name>
-        <Color Value="12"/><TrackGroupId Value="-1"/>
-        <DeviceChain><Mixer><On><Manual Value="true"/></On><Volume><Manual Value="0.85"/></Volume><Pan><Manual Value="0"/></Pan></Mixer><DeviceChain><Devices><AudioEffectGroupDevice Id="10"><On><Manual Value="true"/></On><UserName Value="Drum Rack FX"/><Branches><AudioEffectBranch Id="1"><Name><EffectiveName Value="Main"/><UserName Value="Main"/></Name><DeviceChain><AudioToAudioDeviceChain><Devices><GlueCompressor Id="11"><On><Manual Value="true"/></On></GlueCompressor></Devices></AudioToAudioDeviceChain></DeviceChain></AudioEffectBranch></Branches></AudioEffectGroupDevice></Devices></DeviceChain></DeviceChain>
-      </GroupTrack>
-      <AudioTrack Id="2">
-        <Name><EffectiveName Value="KICK"/><UserName Value="KICK"/></Name><Color Value="44"/><TrackGroupId Value="1"/><Freeze Value="false"/>
-        <DeviceChain><AudioInputRouting><Target Value="AudioIn/External/S0"/><UpperDisplayString Value="Ext. In"/><LowerDisplayString Value="1"/></AudioInputRouting><AudioOutputRouting><Target Value="AudioOut/Master"/><UpperDisplayString Value="Master"/></AudioOutputRouting><Mixer><On><Manual Value="true"/></On><Solo Value="false"/><Arm Value="false"/><Volume><Manual Value="0.78"/></Volume><Pan><Manual Value="0"/></Pan></Mixer><MainSequencer><Sample><ArrangerAutomation><Events><AudioClip Id="21" Time="0"><CurrentStart Value="0"/><CurrentEnd Value="128"/><Name Value="Kick Print"/><Color Value="44"/><IsWarped Value="false"/><SampleRef><FileRef><HasRelativePath Value="true"/><RelativePath Value="Samples/Recorded/Kick Print.wav"/><Name Value="Kick Print.wav"/><Path Value="/Users/jim/Music/Demo Project/Samples/Recorded/Kick Print.wav"/><OriginalFileSize Value="4821440"/></FileRef><SampleRate Value="48000"/></SampleRef><Loop><LoopStart Value="0"/><LoopEnd Value="128"/><LoopOn Value="false"/></Loop></AudioClip></Events></ArrangerAutomation></Sample></MainSequencer><DeviceChain><Devices><PluginDevice Id="12"><On><Manual Value="true"/></On><PluginDesc><Vst3PluginInfo Id="0"><Name Value="Pro-Q 3"/><Manufacturer Value="FabFilter"/><DeviceType Value="2"/></Vst3PluginInfo></PluginDesc></PluginDevice><Utility Id="13"><On><Manual Value="true"/></On></Utility></Devices></DeviceChain></DeviceChain>
-      </AudioTrack>
-      <MidiTrack Id="3">
-        <Name><EffectiveName Value="BASS"/><UserName Value="BASS"/></Name><Color Value="18"/><TrackGroupId Value="-1"/><Freeze Value="true"/>
-        <DeviceChain><MidiInputRouting><UpperDisplayString Value="All Ins"/><LowerDisplayString Value="All Channels"/></MidiInputRouting><AudioOutputRouting><UpperDisplayString Value="Master"/></AudioOutputRouting><Mixer><On><Manual Value="true"/></On><Arm Value="true"/><Volume><Manual Value="0.7"/></Volume><Pan><Manual Value="0"/></Pan></Mixer><MainSequencer><ClipSlotList><ClipSlot><Value><MidiClip Id="31" Time="0"><CurrentStart Value="0"/><CurrentEnd Value="16"/><Name Value="Bass Pattern"/><Loop><LoopStart Value="0"/><LoopEnd Value="16"/><LoopOn Value="true"/></Loop><Notes><KeyTracks><KeyTrack Id="36"><Notes><MidiNoteEvent Time="0" Duration="1" Velocity="105" Probability="1"/><MidiNoteEvent Time="4" Duration="1" Velocity="100" Probability="0.8"/></Notes></KeyTrack><KeyTrack Id="39"><Notes><MidiNoteEvent Time="8" Duration="2" Velocity="98" Probability="1"/></Notes></KeyTrack></KeyTracks></Notes></MidiClip></Value></ClipSlot></ClipSlotList></MainSequencer><DeviceChain><Devices><PluginDevice Id="14"><On><Manual Value="true"/></On><PluginDesc><Vst3PluginInfo Id="0"><Name Value="Serum 2"/><Manufacturer Value="Xfer Records"/><DeviceType Value="1"/></Vst3PluginInfo></PluginDesc></PluginDevice><PluginDevice Id="15"><On><Manual Value="false"/></On><PluginDesc><AuPluginInfo Id="0"><Name Value="Kickstart 2"/><Manufacturer Value="Nicky Romero"/></AuPluginInfo></PluginDesc></PluginDevice><MxDeviceAudioEffect Id="16"><On><Manual Value="true"/></On><UserName Value="Cloudy"/><SourceContext><OriginalFileRef><FileRef><Name Value="Cloudy.amxd"/><Path Value="/Users/jim/Music/Ableton/User Library/Presets/Audio Effects/Max Audio Effect/Cloudy.amxd"/></FileRef></OriginalFileRef></SourceContext></MxDeviceAudioEffect></Devices></DeviceChain></DeviceChain>
-      </MidiTrack>
-      <AudioTrack Id="4">
-        <Name><EffectiveName Value="VOCAL"/><UserName Value="VOCAL"/></Name><Color Value="8"/><TrackGroupId Value="-1"/>
-        <DeviceChain><AudioOutputRouting><UpperDisplayString Value="Ext. Out"/><LowerDisplayString Value="3/4"/></AudioOutputRouting><Mixer><On><Manual Value="false"/></On><Volume><Manual Value="0.65"/></Volume><Pan><Manual Value="-0.1"/></Pan></Mixer><MainSequencer><Sample><ArrangerAutomation><Events><AudioClip Id="41" Time="32"><CurrentStart Value="32"/><CurrentEnd Value="96"/><Name Value="Lead Vocal"/><IsWarped Value="true"/><WarpMode Value="6"/><WarpMarkers><WarpMarker SecTime="0" BeatTime="0"/><WarpMarker SecTime="10" BeatTime="20"/></WarpMarkers><SampleRef><FileRef><HasRelativePath Value="false"/><Name Value="Lead Vocal.wav"/><Path Value="/Volumes/Sessions/Vocals/Lead Vocal.wav"/><OriginalFileSize Value="16821440"/></FileRef><SampleRate Value="48000"/></SampleRef></AudioClip></Events></ArrangerAutomation></Sample></MainSequencer><DeviceChain><Devices><PluginDevice Id="17"><On><Manual Value="true"/></On><PluginDesc><VstPluginInfo Id="0"><Path Value="/Library/Audio/Plug-Ins/VST/Soundtoys/EchoBoy.vst"/><PlugName Value="EchoBoy"/></VstPluginInfo></PluginDesc></PluginDevice></Devices></DeviceChain></DeviceChain>
-      </AudioTrack>
-    </Tracks>
-    <ReturnTracks><ReturnTrack Id="5"><Name><EffectiveName Value="A-Reverb"/><UserName Value="A-Reverb"/></Name><Color Value="29"/><TrackGroupId Value="-1"/><DeviceChain><Mixer><On><Manual Value="true"/></On><Volume><Manual Value="0.55"/></Volume></Mixer><DeviceChain><Devices><Reverb Id="18"><On><Manual Value="true"/></On></Reverb></Devices></DeviceChain></DeviceChain></ReturnTrack></ReturnTracks>
-    <MasterTrack Id="0"><Name><EffectiveName Value="Main"/><UserName Value=""/></Name><DeviceChain><Mixer><Tempo><Manual Value="143"/></Tempo><On><Manual Value="true"/></On><Volume><Manual Value="0.8"/></Volume></Mixer><DeviceChain><Devices><Limiter Id="19"><On><Manual Value="true"/></On></Limiter></Devices></DeviceChain></DeviceChain></MasterTrack>
-    <Scenes><Scene Id="0"><Name><EffectiveName Value="INTRO"/><UserName Value="INTRO"/></Name><Color Value="12"/></Scene><Scene Id="1"><Name><EffectiveName Value="VERSE"/><UserName Value="VERSE"/></Name><Color Value="18"/></Scene></Scenes>
-    <Locators><Locator Id="0"><Time Value="0"/><Name Value="INTRO"/></Locator><Locator Id="1"><Time Value="32"/><Name Value="VERSE"/></Locator><Locator Id="2"><Time Value="96"/><Name Value="OUTRO"/></Locator></Locators>
-    <TimeSignature><TimeSignatures><RemoteableTimeSignature><Numerator Value="4"/><Denominator Value="4"/><Time Value="0"/></RemoteableTimeSignature></TimeSignatures></TimeSignature>
-    <LoopOn Value="true"/><LoopStart Value="0"/><LoopLength Value="128"/>
-  </LiveSet>
-</Ableton>`;
 
   init();
 })();

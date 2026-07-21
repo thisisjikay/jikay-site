@@ -1,8 +1,9 @@
+(function exposeParserCore(globalScope) {
 const SESSION_CONTAINERS = new Set(["ClipSlot", "ClipSlotList"]);
 const ARRANGEMENT_CONTAINERS = new Set(["ArrangerAutomation", "ArrangerClip", "Arrangement"]);
 const UNKNOWN_CONTAINERS = new Set(["TakeLane", "TakeLanes", "Comping", "FreezeSequencer", "FreezeSequence"]);
 
-export function classifyClipContext(node, trackNode = null) {
+function classifyClipContext(node, trackNode = null) {
   let current = node?.parentElement || null;
 
   while (current && current !== trackNode) {
@@ -15,7 +16,7 @@ export function classifyClipContext(node, trackNode = null) {
   return "Unknown";
 }
 
-export function calculateArrangementLength({ clips, locators, loop }) {
+function calculateArrangementLength({ clips, locators, loop }) {
   const arrangementClipEnds = clips
     .filter((clip) => clip.context === "Arrangement")
     .map((clip) => clip.end)
@@ -26,7 +27,7 @@ export function calculateArrangementLength({ clips, locators, loop }) {
   return Math.max(0, loopEnd, ...arrangementClipEnds, ...locatorTimes);
 }
 
-export function assignTrackDisplayIndexes(tracks) {
+function assignTrackDisplayIndexes(tracks) {
   let regularIndex = 0;
   let returnIndex = 0;
 
@@ -46,3 +47,10 @@ export function assignTrackDisplayIndexes(tracks) {
 
   return tracks;
 }
+
+globalScope.AbletonSetParserCore = {
+  assignTrackDisplayIndexes,
+  calculateArrangementLength,
+  classifyClipContext,
+};
+})(globalThis);
