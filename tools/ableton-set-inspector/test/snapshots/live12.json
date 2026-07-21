@@ -2,7 +2,7 @@
   "generatedAt": "2026-01-01T00:00:00.000Z",
   "file": {
     "name": "live12.als",
-    "size": 2583,
+    "size": 2888,
     "lastModified": "2025-12-31T12:00:00.000Z"
   },
   "live": {
@@ -54,10 +54,10 @@
       "monitoring": null,
       "inputRouting": null,
       "outputRouting": "Master",
-      "deviceIds": ["20-device-1-50", "20-device-2-52", "20-device-3-51"],
+      "deviceIds": ["20-device-1-50", "20-device-2-52", "20-device-3-51", "20-device-4-53"],
       "audioClipIds": ["20-audio-clip-0-40", "20-audio-clip-1-41"],
       "midiClipIds": [],
-      "deviceCount": 3,
+      "deviceCount": 4,
       "audioClipCount": 2,
       "midiClipCount": 0,
       "automationEnvelopeCount": 0,
@@ -152,6 +152,25 @@
       "parentRackName": "Audio Effect Rack",
       "branchName": "Parallel",
       "browserPath": null
+    },
+    {
+      "id": "20-device-4-53",
+      "internalId": "53",
+      "name": "Nested Fixture VST3",
+      "customName": null,
+      "rawClass": "PluginDevice",
+      "format": "VST3",
+      "category": "audio-effect",
+      "manufacturer": "Fixture Co",
+      "path": null,
+      "trackId": "20",
+      "trackName": "Live 12 Audio",
+      "position": 4,
+      "enabled": true,
+      "parentRackClass": "AudioEffectGroupDevice",
+      "parentRackName": "Audio Effect Rack",
+      "branchName": "Parallel",
+      "browserPath": null
     }
   ],
   "clips": {
@@ -183,11 +202,13 @@
           "absolutePath": "/Project/Samples/print.wav",
           "relativePath": "Samples/print.wav",
           "hasRelativePath": true,
+          "relativePathType": 3,
+          "projectLocation": "in-project",
           "effectivePath": "Samples/print.wav",
           "originalSize": null,
           "originalCrc": null,
           "sampleRate": 48000,
-          "referenceType": "Relative reference"
+          "referenceType": "In project"
         }
       },
       {
@@ -224,11 +245,13 @@
         "absolutePath": "/Project/Samples/print.wav",
         "relativePath": "Samples/print.wav",
         "hasRelativePath": true,
+        "relativePathType": 3,
+        "projectLocation": "in-project",
         "effectivePath": "Samples/print.wav",
         "originalSize": null,
         "originalCrc": null,
         "sampleRate": 48000,
-        "referenceType": "Relative reference",
+        "referenceType": "In project",
         "clipId": "20-audio-clip-0-40",
         "clipName": "Arrangement Print",
         "trackId": "20",
@@ -237,13 +260,15 @@
     ],
     "uniqueFiles": [
       {
-        "key": "samples/print.wav",
+        "key": "in-project|samples/print.wav",
         "name": "print.wav",
         "absolutePath": "/Project/Samples/print.wav",
         "relativePath": "Samples/print.wav",
         "effectivePath": "Samples/print.wav",
         "hasRelativePath": true,
-        "referenceType": "Relative reference",
+        "relativePathType": 3,
+        "projectLocation": "in-project",
+        "referenceType": "In project",
         "originalSize": null,
         "sampleRate": 48000,
         "occurrences": [
@@ -276,15 +301,16 @@
     "trackCount": 1,
     "returnCount": 0,
     "groupCount": 0,
-    "deviceCount": 3,
-    "pluginCount": 0,
-    "uniquePluginCount": 0,
+    "deviceCount": 4,
+    "pluginCount": 1,
+    "uniquePluginCount": 1,
     "maxDeviceCount": 1,
     "rackCount": 1,
     "audioClipCount": 2,
     "midiClipCount": 0,
     "uniqueMediaCount": 1,
-    "absoluteOnlyMediaCount": 0,
+    "externalMediaCount": 0,
+    "unknownMediaLocationCount": 0,
     "frozenTrackCount": 0,
     "mutedTrackCount": 0
   },

@@ -4,17 +4,17 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#171717" />
-    <meta name="description" content="Inspect Ableton Live Set files locally in your browser without opening Ableton Live." />
+    <meta name="description" content="See the tracks, devices and audio files used by an Ableton Live Set without opening Live." />
     <title>Ableton Set Inspector</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
     <header class="app-header">
       <div class="brand">
-        <div class="brand-mark" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+        <img class="brand-mark" src="../../assets/images/jikay_logo_2021_White.png" alt="" aria-hidden="true" />
         <div>
           <h1>Ableton Set Inspector</h1>
-          <p>Read a Live Set without opening Live.</p>
+          <p>Check a Live Set without opening Live.</p>
         </div>
       </div>
       <div class="header-actions">
@@ -26,11 +26,11 @@
     <main>
       <section class="hero" id="dropSection">
         <div class="hero-copy">
-          <div class="eyebrow">PRIVATE • LOCAL • READ-ONLY</div>
-          <h2>See what is inside an <span>.als</span> file.</h2>
+          <div class="eyebrow">PRIVATE • STAYS ON YOUR DEVICE • READ-ONLY</div>
+          <h2>See what’s inside an <span>.als</span> file.</h2>
           <p>
-            Drop in an Ableton Live Set to inspect its tracks, devices, clips, routing and media references. The file is processed only in
-            this browser.
+            Choose an Ableton Live Set to see its tracks, required devices and audio files. Everything happens in this browser—nothing is
+            uploaded or changed.
           </p>
         </div>
 
@@ -40,7 +40,7 @@
           <h3>Drop an Ableton Set here</h3>
           <p>or choose a file from your computer</p>
           <button class="primary-button" id="chooseButton" type="button">Choose .als file</button>
-          <small>Nothing is uploaded. The app does not modify your Set.</small>
+          <small>Your Set stays on this device and is never changed.</small>
         </div>
 
         <div class="support-note" id="supportNote" hidden></div>
@@ -50,7 +50,7 @@
         <div class="spinner" aria-hidden="true"></div>
         <div>
           <h2 id="processingTitle">Reading Set…</h2>
-          <p id="processingDetail">Preparing the file for analysis.</p>
+          <p id="processingDetail">Getting your Set ready.</p>
         </div>
         <div class="progress-track" aria-hidden="true"><div id="progressBar"></div></div>
       </section>
@@ -71,15 +71,21 @@
       <section class="report" id="reportSection" hidden>
         <div class="report-header">
           <div>
-            <div class="eyebrow" id="scanStatus">SET INSPECTED LOCALLY</div>
+            <div class="eyebrow" id="scanStatus">CHECKED ON THIS DEVICE</div>
             <h2 id="reportFilename">Project.als</h2>
             <p id="reportSubhead"></p>
           </div>
           <div class="report-actions">
-            <button class="secondary-button" id="newSetButton" type="button">Open another</button>
-            <button class="secondary-button" id="copyButton" type="button">Copy report</button>
-            <button class="secondary-button" id="textButton" type="button">Export text</button>
-            <button class="secondary-button" id="printButton" type="button">Print / PDF</button>
+            <button class="secondary-button" id="newSetButton" type="button" title="Choose a different Ableton Set">Open another</button>
+            <button class="secondary-button" id="copyButton" type="button" title="Copy a plain-text version of this report">
+              Copy report
+            </button>
+            <button class="secondary-button" id="textButton" type="button" title="Download this report as a text file">
+              Download text
+            </button>
+            <button class="secondary-button" id="printButton" type="button" title="Print the report or save it as a PDF">
+              Print / PDF
+            </button>
           </div>
         </div>
 
@@ -88,12 +94,7 @@
         <div class="report-toolbar">
           <label class="search-box">
             <span aria-hidden="true">⌕</span>
-            <input id="reportSearch" type="search" placeholder="Search tracks, devices or files…" autocomplete="off" />
-          </label>
-          <label class="toggle-control">
-            <input id="detailToggle" type="checkbox" />
-            <span class="toggle-ui" aria-hidden="true"></span>
-            Full detail
+            <input id="reportSearch" type="search" placeholder="Find a track, device or file…" autocomplete="off" />
           </label>
         </div>
 
@@ -103,24 +104,21 @@
 
       <section class="about" id="about">
         <div>
-          <div class="eyebrow">ABOUT THIS BUILD</div>
-          <h2>Designed as a safe first-pass project report.</h2>
+          <div class="eyebrow">ABOUT</div>
+          <h2>A quick, safe overview of an Ableton Set.</h2>
         </div>
         <div class="about-grid">
           <article>
             <h3>What it does</h3>
-            <p>Reads the gzip-compressed XML inside an Ableton Live Set and turns recognisable structures into a human-readable report.</p>
+            <p>Shows the tracks, devices and audio files saved in an Ableton Live Set.</p>
           </article>
           <article>
             <h3>What it does not do</h3>
-            <p>It cannot hear the project, verify licences, scan installed plug-ins, or prove that external file paths still exist.</p>
+            <p>It cannot play the Set, check licences, see which plug-ins are installed, or confirm that external files still exist.</p>
           </article>
           <article>
-            <h3>Compatibility</h3>
-            <p>
-              The parser is deliberately tolerant of unknown nodes. New or unusual Live structures may produce a partial report rather than
-              failing completely.
-            </p>
+            <h3>If something looks incomplete</h3>
+            <p>New or unusual Live features may not appear yet, but the inspector will still show everything it can recognise.</p>
           </article>
         </div>
         <p class="disclaimer">
@@ -130,7 +128,7 @@
     </main>
 
     <footer>
-      <span>Ableton Set Inspector MVP</span>
+      <span>Ableton Set Inspector</span>
       <span>Files stay on your computer.</span>
     </footer>
 

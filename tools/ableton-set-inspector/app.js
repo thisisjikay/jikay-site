@@ -7,10 +7,10 @@
   const state = {
     report: null,
     sourceXml: "",
-    detail: false,
     search: "",
     showNativeDevices: false,
-    collapsedSections: new Set(),
+    collapsedSections: new Set(["technical"]),
+    expandedDevices: new Set(),
     currentFile: null,
   };
 
@@ -39,7 +39,6 @@
     reportContent: $("#reportContent"),
     sectionNav: $("#sectionNav"),
     reportSearch: $("#reportSearch"),
-    detailToggle: $("#detailToggle"),
     newSetButton: $("#newSetButton"),
     copyButton: $("#copyButton"),
     textButton: $("#textButton"),
@@ -94,10 +93,6 @@
 
     els.tryAgainButton.addEventListener("click", resetToDropZone);
     els.newSetButton.addEventListener("click", resetToDropZone);
-    els.detailToggle.addEventListener("change", () => {
-      state.detail = els.detailToggle.checked;
-      renderReport();
-    });
     els.reportSearch.addEventListener("input", () => {
       state.search = els.reportSearch.value.trim().toLowerCase();
       applySearchFilter();
@@ -111,8 +106,7 @@
   function detectSupport() {
     if (!("DecompressionStream" in window)) {
       els.supportNote.hidden = false;
-      els.supportNote.textContent =
-        "This browser does not provide native gzip decompression. Use a current version of Chrome, Edge, Firefox or Safari.";
+      els.supportNote.textContent = "This browser can’t open Ableton Set files. Try the latest version of Chrome, Edge, Firefox or Safari.";
     }
   }
 
@@ -145,16 +139,16 @@
       showProcessing("Reading Set…", `${formatBytes(file.size)} • ${file.name}`, 10);
       await nextFrame();
 
-      showProcessing("Decompressing…", "Opening the gzip-compressed Ableton XML.", 28);
+      showProcessing("Opening Set…", "Reading the information saved by Ableton Live.", 28);
       const xmlText = await decompressAls(file);
       state.sourceXml = xmlText;
       await nextFrame();
 
-      showProcessing("Parsing structure…", "Finding Set, track and device data.", 51);
+      showProcessing("Finding tracks and devices…", "Reading the contents of your Set.", 51);
       const xmlDocument = parseXml(xmlText);
       await nextFrame();
 
-      showProcessing("Building report…", "Normalising clips, media references and warnings.", 76);
+      showProcessing("Checking audio files…", "Working out which files are inside or outside the Project.", 76);
       const report = parseAbletonDocument(xmlDocument, {
         name: file.name,
         size: file.size,
@@ -163,7 +157,7 @@
       state.report = report;
       await nextFrame();
 
-      showProcessing("Finishing…", "Preparing the interactive report.", 96);
+      showProcessing("Almost done…", "Putting your report together.", 96);
       await delay(80);
       showReport();
     } catch (error) {
@@ -178,10 +172,10 @@
     }
     if (file.size === 0) throw userError("This file is empty.");
     if (file.size > 250 * 1024 * 1024) {
-      throw userError("This Set is larger than the current 250 MB safety limit.");
+      throw userError("This Set is over the 250 MB file-size limit.");
     }
     if (!("DecompressionStream" in window)) {
-      throw userError("This browser cannot decompress .als files. Use a current version of Chrome, Edge, Firefox or Safari.");
+      throw userError("This browser can’t open .als files. Try the latest version of Chrome, Edge, Firefox or Safari.");
     }
   }
 
@@ -190,7 +184,7 @@
       const stream = file.stream().pipeThrough(new DecompressionStream("gzip"));
       return await new Response(stream).text();
     } catch (error) {
-      throw userError("The file could not be decompressed. It may be damaged or may not be a standard Ableton Live Set.", error);
+      throw userError("This file couldn’t be opened. It may be damaged or may not be an Ableton Live Set.", error);
     }
   }
 
@@ -243,7 +237,9 @@
     state.currentFile = null;
     state.search = "";
     state.showNativeDevices = false;
+    state.expandedDevices.clear();
     state.collapsedSections.clear();
+    state.collapsedSections.add("technical");
     els.errorDetails.textContent = "";
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -253,21 +249,25 @@
     if (!report) return;
 
     els.reportFilename.textContent = report.file.name;
-    els.reportSubhead.textContent = `${formatBytes(report.file.size)} • ${report.live.creator} • scanned ${formatDateTime(report.generatedAt)}`;
-    els.scanStatus.textContent = "SET INSPECTED LOCALLY";
+    els.reportSubhead.textContent = `${formatBytes(report.file.size)} • ${report.live.creator} • checked ${formatDateTime(report.generatedAt)}`;
+    els.scanStatus.textContent = "CHECKED ON THIS DEVICE";
 
     const summaryItems = [
-      [formatLiveVersion(report), "Live version"],
-      [formatNumber(report.session.tempo, "—"), "Tempo"],
-      [report.session.timeSignature || "—", "Time signature"],
-      [String(report.stats.trackCount), "Tracks"],
-      [String(report.stats.pluginCount), "Plug-ins"],
-      [formatDuration(report.session.arrangementLengthSeconds), "Arrangement"],
+      [formatLiveVersion(report), "Live version", "The version of Ableton Live that last saved this Set."],
+      [formatNumber(report.session.tempo, "—"), "Tempo", "The main Set tempo in beats per minute (BPM)."],
+      [report.session.timeSignature || "—", "Time signature", "The Set’s main time signature."],
+      [String(report.stats.trackCount), "Tracks", "Audio, MIDI and Group tracks. Return and Master tracks are not included here."],
+      [String(report.stats.pluginCount), "Plug-ins", "VST and Audio Unit instances used in the Set."],
+      [
+        formatDuration(report.session.arrangementLengthSeconds),
+        "Arrangement length",
+        "An estimate based on the end of the Arrangement, loop or last locator.",
+      ],
     ];
     els.summaryGrid.innerHTML = summaryItems
       .map(
-        ([value, label]) => `
-      <div class="summary-card">
+        ([value, label, tooltip]) => `
+      <div class="summary-card has-tooltip" tabindex="0" data-tooltip="${escapeAttr(tooltip)}" title="${escapeAttr(tooltip)}">
         <div class="value">${escapeHtml(value)}</div>
         <div class="label">${escapeHtml(label)}</div>
       </div>
@@ -276,10 +276,9 @@
       .join("");
 
     const sections = [
-      renderWarningsSection(report),
       renderDevicesSection(report),
-      renderTracksSection(report),
       renderMediaSection(report),
+      renderTracksSection(report),
       renderTechnicalSection(report),
     ];
     els.reportContent.innerHTML = sections.join("");
@@ -288,42 +287,22 @@
     applySearchFilter();
   }
 
-  function renderWarningsSection(report) {
-    return sectionTemplate(
-      "warnings",
-      "Warnings & notices",
-      report.warnings.length,
-      `
-      <div class="warning-list">
-        ${report.warnings
-          .map(
-            (warning) => `
-          <div class="warning-row ${escapeHtml(warning.level)}" data-searchable="${escapeAttr(`${warning.title} ${warning.detail}`)}">
-            <div class="warning-level">${escapeHtml(warning.level.toUpperCase())}</div>
-            <div><strong>${escapeHtml(warning.title)}</strong><p>${escapeHtml(warning.detail)}</p></div>
-          </div>
-        `,
-          )
-          .join("")}
-      </div>
-    `,
-    );
-  }
-
   function renderDevicesSection(report) {
     const allGroups = groupDevices(report.devices);
-    if (!allGroups.length) return sectionTemplate("devices", "Required devices", 0, emptyState("No devices were found."));
+    if (!allGroups.length) return sectionTemplate("devices", "Required devices", 0, emptyState("No devices were found in this Set."));
     const groups = state.showNativeDevices ? allGroups : allGroups.filter((group) => !group.items.every(isAbletonNativeDevice));
+    const visibleDeviceCount = groups.reduce((total, group) => total + group.items.length, 0);
     return sectionTemplate(
       "devices",
       "Required devices",
-      report.devices.length,
+      visibleDeviceCount,
       `
       <div class="section-controls">
         <label class="toggle-control">
           <input id="nativeDevicesToggle" type="checkbox"${state.showNativeDevices ? " checked" : ""}>
           <span class="toggle-ui" aria-hidden="true"></span>
-          Ableton native devices
+          Include Ableton devices
+          <span class="help-tip" tabindex="0" data-tooltip="Turn this on to include Live’s built-in instruments, effects and Racks." title="Turn this on to include Live’s built-in instruments, effects and Racks." aria-label="About Include Ableton devices">?</span>
         </label>
       </div>
       ${
@@ -334,22 +313,25 @@
           .map((group) => {
             const formats = [...new Set(group.items.map((item) => item.format))];
             const tracks = [...new Set(group.items.map((item) => item.trackName))];
+            const key = deviceGroupKey(group);
+            const expanded = state.expandedDevices.has(key);
             return `
-            <div class="compact-row" data-searchable="${escapeAttr(`${group.name} ${formats.join(" ")} ${tracks.join(" ")}`)}">
+            <div class="compact-row expandable-device-row${expanded ? " open" : ""}" role="button" tabindex="0" aria-expanded="${String(expanded)}" data-device-key="${escapeAttr(key)}" data-searchable="${escapeAttr(`${group.name} ${formats.join(" ")} ${tracks.join(" ")}`)}">
               <div class="compact-main">
                 <strong>${escapeHtml(group.name)}</strong>
-                <small>${escapeHtml(group.manufacturer || formats.join(" / "))}</small>
-                ${state.detail ? `<ul class="detail-occurrences">${group.items.map((item) => `<li>• ${escapeHtml(item.trackName)}${item.branchName ? ` / ${escapeHtml(item.branchName)}` : ""}${!item.enabled ? " — disabled" : ""}</li>`).join("")}</ul>` : ""}
+                ${group.manufacturer ? `<small>${escapeHtml(group.manufacturer)}</small>` : ""}
+                <ul class="detail-occurrences">${group.items.map((item) => `<li>• ${escapeHtml(item.trackName)}${item.branchName ? ` / ${escapeHtml(item.branchName)}` : ""}${!item.enabled ? " — disabled" : ""}</li>`).join("")}</ul>
               </div>
-              <div><span class="badge ${formats.includes("Audio Unit") ? "warning" : formats.includes("Max for Live") ? "accent" : ""}">${escapeHtml(formats.join(" / "))}</span></div>
+              <div><span class="badge ${deviceFormatBadgeClass(formats)}">${escapeHtml(formats.join(" / "))}</span></div>
               <div class="compact-count">×${group.items.length}</div>
+              <span class="row-chevron" aria-hidden="true">›</span>
             </div>
           `;
           })
           .join("")}
       </div>
       `
-          : emptyState("No third-party, Max for Live or other required devices were found. Enable Ableton native devices to include them.")
+          : emptyState("No plug-ins or Max for Live devices were found. Turn on Include Ableton devices to see Live’s built-in devices.")
       }
     `,
     );
@@ -359,8 +341,26 @@
     return device.format === "Ableton" || device.format === "Rack";
   }
 
+  function deviceGroupKey(group) {
+    return `${group.name.toLowerCase()}|${group.format.toLowerCase()}`;
+  }
+
+  function deviceFormatBadgeClass(formats) {
+    if (formats.length !== 1) return "format-mixed";
+    return (
+      {
+        VST3: "format-vst3",
+        VST2: "format-vst2",
+        "Audio Unit": "format-au",
+        "Max for Live": "format-max",
+        Rack: "format-rack",
+        Ableton: "format-ableton",
+      }[formats[0]] || "format-mixed"
+    );
+  }
+
   function renderTracksSection(report) {
-    if (!report.tracks.length) return sectionTemplate("tracks", "Tracks", 0, emptyState("No recognised tracks were found."));
+    if (!report.tracks.length) return sectionTemplate("tracks", "Tracks", 0, emptyState("No tracks could be read from this Set."));
     const trackMap = new Map(report.tracks.map((track) => [String(track.id), track]));
     return sectionTemplate(
       "tracks",
@@ -381,18 +381,18 @@
                   <span>${escapeHtml(track.name)}</span>
                 </span>
                 <span class="track-type">${escapeHtml(titleCase(track.type))}</span>
-                <span class="track-counts">${track.deviceCount} devices • ${track.audioClipCount + track.midiClipCount} clips</span>
+                <span class="track-counts">${formatCount(track.deviceCount, "device")} • ${formatCount(track.audioClipCount + track.midiClipCount, "clip")}</span>
                 <span class="track-state">${renderTrackStates(track)} <span class="track-chevron">›</span></span>
               </button>
               <div class="track-details">
                 <div class="track-meta-grid">
                   ${trackMeta("Input", track.inputRouting || "—")}
                   ${trackMeta("Output", track.outputRouting || "—")}
-                  ${trackMeta("Monitoring", track.monitoring || "—")}
-                  ${trackMeta("Parent group", track.parentGroupName || "—")}
+                  ${trackMeta("Input monitoring", track.monitoring || "—")}
+                  ${trackMeta("Inside group", track.parentGroupName || "—")}
                   ${trackMeta("Volume", formatNumber(track.volume, "—", 3))}
                   ${trackMeta("Pan", formatNumber(track.pan, "—", 3))}
-                  ${trackMeta("Automation", track.hasAutomation ? `${track.automationEnvelopeCount + track.clipEnvelopeCount} envelopes` : "None detected")}
+                  ${trackMeta("Automation", track.hasAutomation ? `${track.automationEnvelopeCount + track.clipEnvelopeCount} automation lanes` : "None found")}
                   ${trackMeta("State", trackStateText(track))}
                 </div>
                 <ul class="inline-list">
@@ -403,12 +403,15 @@
                             (device) => `
                     <li>
                       <span>${escapeHtml(device.name)}${device.branchName ? `<small> — ${escapeHtml(device.branchName)}</small>` : ""}</span>
-                      <small>${escapeHtml(device.format)}${device.enabled ? "" : " • disabled"}</small>
+                      <span class="device-format-meta">
+                        <span class="badge ${deviceFormatBadgeClass([device.format])}">${escapeHtml(device.format)}</span>
+                        ${device.enabled ? "" : `<span class="badge off">Disabled</span>`}
+                      </span>
                     </li>
                   `,
                           )
                           .join("")
-                      : `<li><span>No devices</span><small>Empty chain</small></li>`
+                      : `<li><span>No devices on this track</span></li>`
                   }
                 </ul>
               </div>
@@ -423,25 +426,25 @@
 
   function renderMediaSection(report) {
     const files = report.media.uniqueFiles;
-    if (!files.length) return sectionTemplate("media", "Media references", 0, emptyState("No referenced audio files were found."));
+    if (!files.length) return sectionTemplate("media", "Audio files", 0, emptyState("No audio files were found in this Set."));
+    const externalCount = files.filter((file) => file.projectLocation === "external").length;
     return sectionTemplate(
       "media",
-      "Media references",
+      "Audio files",
       files.length,
       `
       <div class="data-table-wrap">
-        <table class="data-table">
-          <thead><tr><th>File</th><th>Reference</th><th>Used by</th><th>Original size</th><th>Path</th></tr></thead>
+        <table class="data-table media-table">
+          <thead><tr><th>File</th><th>Location</th><th>File size</th><th>Saved path</th></tr></thead>
           <tbody>
             ${files
               .map(
                 (file) => `
-              <tr data-searchable="${escapeAttr(`${file.name} ${file.effectivePath} ${file.occurrences.map((item) => item.trackName).join(" ")}`)}">
-                <td><span class="table-primary">${escapeHtml(file.name)}</span></td>
-                <td><span class="badge ${!file.hasRelativePath && file.absolutePath ? "warning" : ""}">${escapeHtml(file.referenceType)}</span></td>
-                <td>${escapeHtml(state.detail ? file.occurrences.map((item) => `${item.trackName} / ${item.clipName}`).join(", ") : `${file.occurrences.length} ${file.occurrences.length === 1 ? "clip" : "clips"}`)}</td>
-                <td class="mono">${file.originalSize ? formatBytes(file.originalSize) : "—"}</td>
-                <td class="path-cell mono">${escapeHtml(file.relativePath || file.absolutePath || file.name)}</td>
+              <tr data-searchable="${escapeAttr(`${file.name} ${file.effectivePath}`)}">
+                <td data-label="File"><span class="table-primary">${escapeHtml(file.name)}</span></td>
+                <td data-label="Location"><span class="badge has-tooltip ${file.projectLocation === "external" ? "warning" : ""}" tabindex="0" data-tooltip="${escapeAttr(mediaLocationTooltip(file))}" title="${escapeAttr(mediaLocationTooltip(file))}">${escapeHtml(mediaReferenceLabel(file))}</span></td>
+                <td data-label="File size" class="mono">${file.originalSize ? formatBytes(file.originalSize) : "—"}</td>
+                <td data-label="Saved path" class="path-cell mono" title="${escapeAttr(file.relativePath || file.absolutePath || file.name)}">${escapeHtml(file.relativePath || file.absolutePath || file.name)}</td>
               </tr>
             `,
               )
@@ -450,25 +453,36 @@
         </table>
       </div>
     `,
+      externalCount ? `(${formatCount(externalCount, "external audio file")}!)` : "",
     );
+  }
+
+  function mediaReferenceLabel(file) {
+    if (file.projectLocation === "in-project") return "In project";
+    if (file.projectLocation === "external") return "External";
+    return "Unknown";
+  }
+
+  function mediaLocationTooltip(file) {
+    if (file.projectLocation === "in-project") return "Ableton marks this file as being stored inside the current Project folder.";
+    if (file.projectLocation === "external") return "Ableton marks this file as coming from outside the current Project folder.";
+    return "This Set does not contain enough information to tell where the file is stored.";
   }
 
   function renderTechnicalSection(report) {
     const items = [
-      ["Creator", report.live.creator],
-      ["Major version", report.live.majorVersion],
-      ["Minor version", report.live.minorVersion],
-      ["Schema changes", report.live.schemaChangeCount],
+      ["Saved by", report.live.creator],
+      ["Live build", report.live.minorVersion],
       ["File size", formatBytes(report.file.size)],
       ["Last modified", report.file.lastModified ? formatDateTime(report.file.lastModified) : "Unknown"],
       ["Scenes", String(report.session.sceneCount)],
       ["Locators", String(report.session.locatorCount)],
       ["Return tracks", String(report.stats.returnCount)],
       ["Group tracks", String(report.stats.groupCount)],
-      ["Track automation envelopes", String(report.automation.trackEnvelopeCount)],
-      ["Clip envelopes", String(report.automation.clipEnvelopeCount)],
-      ["Parser", "Browser DOMParser + gzip stream"],
-      ["Data handling", "Local browser memory only"],
+      ["Track automation lanes", String(report.automation.trackEnvelopeCount)],
+      ["Clip automation lanes", String(report.automation.clipEnvelopeCount)],
+      ["How it was read", "Opened and checked in your browser"],
+      ["Privacy", "Kept in this browser only"],
     ];
     return sectionTemplate(
       "technical",
@@ -488,17 +502,29 @@
     );
   }
 
-  function sectionTemplate(id, title, count, body) {
+  function sectionTemplate(id, title, count, body, warning = "") {
     const collapsed = state.collapsedSections.has(id);
+    const tooltip = sectionTooltip(id);
     return `
       <section class="report-section${collapsed ? " collapsed" : ""}" id="section-${escapeAttr(id)}" data-section-id="${escapeAttr(id)}" data-section-title="${escapeAttr(title)}">
-        <button class="section-heading" type="button" aria-expanded="${String(!collapsed)}" aria-controls="section-body-${escapeAttr(id)}">
-          <h3>${escapeHtml(title)}</h3>
+        <button class="section-heading has-tooltip" type="button" aria-expanded="${String(!collapsed)}" aria-controls="section-body-${escapeAttr(id)}" data-tooltip="${escapeAttr(tooltip)}" title="${escapeAttr(tooltip)}">
+          <span class="section-title"><h3>${escapeHtml(title)}</h3><span class="section-help" aria-hidden="true">?</span>${warning ? `<span class="section-warning">${escapeHtml(warning)}</span>` : ""}</span>
           <span class="section-heading-meta"><span class="count">${count}</span><span class="section-chevron" aria-hidden="true">›</span></span>
         </button>
         <div class="section-body" id="section-body-${escapeAttr(id)}">${body}</div>
       </section>
     `;
+  }
+
+  function sectionTooltip(id) {
+    return (
+      {
+        devices: "Everything the Set may need to sound as intended. Click to open or close this section.",
+        tracks: "A quick list of every track and what it contains. Click a track to see more.",
+        media: "Audio files used by clips, including whether Ableton saved them inside or outside the Project folder.",
+        technical: "Extra file and Live-version information that is mostly useful for troubleshooting.",
+      }[id] || "Click to open or close this section."
+    );
   }
 
   function emptyState(message) {
@@ -525,6 +551,24 @@
         const row = button.closest(".track-row");
         const open = row.classList.toggle("open");
         button.setAttribute("aria-expanded", String(open));
+      });
+    });
+    bindExpandableRows(".expandable-device-row", "deviceKey", state.expandedDevices);
+  }
+
+  function bindExpandableRows(selector, dataKey, expandedSet) {
+    document.querySelectorAll(selector).forEach((row) => {
+      const toggle = () => {
+        const open = row.classList.toggle("open");
+        row.setAttribute("aria-expanded", String(open));
+        if (open) expandedSet.add(row.dataset[dataKey]);
+        else expandedSet.delete(row.dataset[dataKey]);
+      };
+      row.addEventListener("click", toggle);
+      row.addEventListener("keydown", (event) => {
+        if (event.key !== "Enter" && event.key !== " ") return;
+        event.preventDefault();
+        toggle();
       });
     });
   }
@@ -574,7 +618,7 @@
     if (track.muted) badges.push(`<span class="badge off">Muted</span>`);
     if (track.solo) badges.push(`<span class="badge">Solo</span>`);
     if (track.armed) badges.push(`<span class="badge warning">Armed</span>`);
-    return badges.join(" ") || `<span class="badge">Active</span>`;
+    return badges.join(" ");
   }
 
   function trackStateText(track) {
@@ -588,6 +632,10 @@
 
   function trackMeta(label, value) {
     return `<div class="track-meta"><span>${escapeHtml(label)}</span><strong>${escapeHtml(String(value))}</strong></div>`;
+  }
+
+  function formatCount(count, singular) {
+    return `${count} ${count === 1 ? singular : `${singular}s`}`;
   }
 
   function createTextReport(report) {
@@ -604,23 +652,23 @@
       `${report.stats.trackCount} Tracks • ${report.stats.returnCount} Returns • ${report.session.sceneCount} Scenes • ${formatDuration(report.session.arrangementLengthSeconds)}`,
     );
     lines.push("");
-    lines.push("WARNINGS & NOTICES");
-    lines.push("──────────────────");
-    lines.push("");
-    report.warnings.forEach((warning) => lines.push(`• [${warning.level.toUpperCase()}] ${warning.title} — ${warning.detail}`));
-    lines.push("");
     lines.push("REQUIRED DEVICES");
     lines.push("────────────────");
     lines.push("");
     if (groups.length) {
       groups.forEach((group) => {
         lines.push(`• ${group.name} ×${group.items.length} (${[...new Set(group.items.map((item) => item.format))].join(" / ")})`);
-        if (state.detail)
-          group.items.forEach((item) =>
-            lines.push(`  - ${item.trackName}${item.branchName ? ` / ${item.branchName}` : ""}${item.enabled ? "" : " [disabled]"}`),
-          );
       });
     } else lines.push("• No devices found");
+    lines.push("");
+    lines.push("AUDIO FILES");
+    lines.push("─────");
+    lines.push("");
+    lines.push(`${report.media.uniqueFiles.length} audio files`);
+    lines.push(`${report.stats.externalMediaCount} outside the Project • ${report.stats.unknownMediaLocationCount} with unknown location`);
+    report.media.uniqueFiles.forEach((file) =>
+      lines.push(`• ${file.name} — ${mediaReferenceLabel(file)} — ${file.relativePath || file.absolutePath || "No path"}`),
+    );
     lines.push("");
     lines.push("TRACKS");
     lines.push("──────");
@@ -629,21 +677,7 @@
       lines.push(
         `${track.displayIndex}  ${track.name} — ${titleCase(track.type)} — ${track.deviceCount} devices — ${track.audioClipCount + track.midiClipCount} clips${track.frozen ? " — Frozen" : ""}${track.muted ? " — Muted" : ""}`,
       );
-      if (state.detail) {
-        const devices = report.devices.filter((device) => device.trackId === track.id);
-        devices.forEach((device) => lines.push(`    • ${device.name} (${device.format})${device.enabled ? "" : " [disabled]"}`));
-      }
     });
-    lines.push("");
-    lines.push("MEDIA");
-    lines.push("─────");
-    lines.push("");
-    lines.push(`${report.media.uniqueFiles.length} unique audio references`);
-    lines.push(`${report.stats.absoluteOnlyMediaCount} absolute-only references`);
-    if (state.detail)
-      report.media.uniqueFiles.forEach((file) =>
-        lines.push(`• ${file.name} — ${file.referenceType} — ${file.relativePath || file.absolutePath || "No path"}`),
-      );
     lines.push("");
     lines.push(`Generated locally on ${formatDateTime(report.generatedAt)}`);
     return lines.join("\n");

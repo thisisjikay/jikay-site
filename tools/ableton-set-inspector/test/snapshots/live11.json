@@ -249,7 +249,8 @@
     "audioClipCount": 0,
     "midiClipCount": 1,
     "uniqueMediaCount": 0,
-    "absoluteOnlyMediaCount": 0,
+    "externalMediaCount": 0,
+    "unknownMediaLocationCount": 0,
     "frozenTrackCount": 1,
     "mutedTrackCount": 0
   },

@@ -437,9 +437,10 @@
 
   function parseDevice(node, track, position, trackNode) {
     const rawClass = node.tagName;
-    const vst3Info = firstByTag(node, "Vst3PluginInfo");
-    const vst2Info = firstByTag(node, "VstPluginInfo");
-    const auInfo = firstByTag(node, "AuPluginInfo");
+    const pluginDesc = directChild(node, "PluginDesc");
+    const vst3Info = directChild(pluginDesc, "Vst3PluginInfo");
+    const vst2Info = directChild(pluginDesc, "VstPluginInfo");
+    const auInfo = directChild(pluginDesc, "AuPluginInfo");
     const pluginInfo = vst3Info || vst2Info || auInfo;
     const isMax = rawClass.startsWith("MxDevice") || rawClass.toLowerCase().includes("maxforlive");
     const isRack = RACK_TAGS.has(rawClass);
@@ -453,15 +454,17 @@
 
     let name;
     if (pluginInfo) {
-      name = firstValueByTag(pluginInfo, "PlugName") || firstValueByTag(pluginInfo, "Name");
+      name = valueOf(directChild(pluginInfo, "PlugName"), "") || valueOf(directChild(pluginInfo, "Name"), "");
     }
     if (!name && isMax) name = readMaxDeviceName(node);
     const customName = valueOf(directChild(node, "UserName"), "");
     if (!name && customName) name = customName;
     if (!name) name = FRIENDLY_DEVICE_NAMES[rawClass] || splitCamelCase(rawClass);
 
-    const manufacturer = pluginInfo ? firstValueByTag(pluginInfo, "Manufacturer") || parseBrowserContentPath(node).manufacturer : null;
-    const path = pluginInfo ? firstValueByTag(pluginInfo, "Path") : isMax ? readMaxDevicePath(node) : null;
+    const manufacturer = pluginInfo
+      ? valueOf(directChild(pluginInfo, "Manufacturer"), "") || parseBrowserContentPath(node).manufacturer
+      : null;
+    const path = pluginInfo ? valueOf(directChild(pluginInfo, "Path"), "") : isMax ? readMaxDevicePath(node) : null;
 
     const on = directChild(node, "On");
     const enabled = booleanValue(on ? directChild(on, "Manual") || firstByTag(on, "Manual") : null, true);
@@ -532,7 +535,7 @@
       return "audio-effect";
     }
     if (pluginInfo) {
-      const type = Number(firstValueByTag(pluginInfo, "DeviceType"));
+      const type = Number(valueOf(directChild(pluginInfo, "DeviceType"), Number.NaN));
       if (type === 1) return "instrument";
       if (type === 2) return "audio-effect";
       return "plugin";
@@ -676,6 +679,8 @@
       if (relativePath && name && !relativePath.endsWith(name)) relativePath += `/${name}`;
     }
     const hasRelative = booleanValue(firstByTag(fileRef, "HasRelativePath"), Boolean(relativePath));
+    const relativePathType = numberValue(firstByTag(fileRef, "RelativePathType"), null);
+    const projectLocation = classifyMediaProjectLocation(relativePathType);
     const effectivePath = relativePath || absolutePath || name || "Unknown file";
 
     return {
@@ -683,18 +688,29 @@
       absolutePath: absolutePath || null,
       relativePath: relativePath || null,
       hasRelativePath: hasRelative,
+      relativePathType,
+      projectLocation,
       effectivePath,
       originalSize: numberValue(firstByTag(fileRef, "OriginalFileSize"), null),
       originalCrc: valueOf(firstByTag(fileRef, "OriginalCrc"), null),
       sampleRate: numberValue(firstByTag(sampleRef, "SampleRate"), null),
-      referenceType: hasRelative ? "Relative reference" : absolutePath ? "Absolute-only reference" : "Unresolved reference",
+      referenceType: projectLocation === "in-project" ? "In project" : projectLocation === "external" ? "External" : "Unknown",
     };
+  }
+
+  function classifyMediaProjectLocation(relativePathType) {
+    // Ableton uses type 3 for paths rooted at the current Project. Other
+    // numeric types refer to locations such as libraries, Packs or elsewhere.
+    if (relativePathType === 3) return "in-project";
+    if (Number.isFinite(relativePathType)) return "external";
+    return "unknown";
   }
 
   function groupMediaReferences(references) {
     const map = new Map();
     references.forEach((ref) => {
-      const key = (ref.relativePath || ref.absolutePath || ref.name || "unknown").toLowerCase();
+      const path = ref.projectLocation === "in-project" ? ref.relativePath || ref.absolutePath : ref.absolutePath || ref.relativePath;
+      const key = `${ref.projectLocation}|${path || ref.name || "unknown"}`.toLowerCase();
       if (!map.has(key)) {
         map.set(key, {
           key,
@@ -703,6 +719,8 @@
           relativePath: ref.relativePath,
           effectivePath: ref.effectivePath,
           hasRelativePath: ref.hasRelativePath,
+          relativePathType: ref.relativePathType,
+          projectLocation: ref.projectLocation,
           referenceType: ref.referenceType,
           originalSize: ref.originalSize,
           sampleRate: ref.sampleRate,
@@ -748,7 +766,8 @@
       audioClipCount: report.clips.audio.length,
       midiClipCount: report.clips.midi.length,
       uniqueMediaCount: report.media.uniqueFiles.length,
-      absoluteOnlyMediaCount: report.media.uniqueFiles.filter((file) => !file.hasRelativePath && file.absolutePath).length,
+      externalMediaCount: report.media.uniqueFiles.filter((file) => file.projectLocation === "external").length,
+      unknownMediaLocationCount: report.media.uniqueFiles.filter((file) => file.projectLocation === "unknown").length,
       frozenTrackCount: report.tracks.filter((track) => track.frozen).length,
       mutedTrackCount: report.tracks.filter((track) => track.muted).length,
     };
@@ -757,18 +776,17 @@
   function buildWarnings(report) {
     const warnings = [];
     const auDevices = report.devices.filter((device) => device.format === "Audio Unit");
-    const absoluteMedia = report.media.uniqueFiles.filter((file) => !file.hasRelativePath && file.absolutePath);
+    const externalMedia = report.media.uniqueFiles.filter((file) => file.projectLocation === "external");
     const maxAbsolute = report.devices.filter((device) => device.format === "Max for Live" && isAbsolutePath(device.path));
     const externalRouteCount = report.routing.externalInputs.length + report.routing.externalOutputs.length;
     const frozenTracks = report.tracks.filter((track) => track.frozen);
     const disabledDevices = report.devices.filter((device) => !device.enabled);
 
-    if (absoluteMedia.length) {
+    if (externalMedia.length) {
       warnings.push({
         level: "warning",
-        title: `${plural(absoluteMedia.length, "audio file uses", "audio files use")} an absolute-only reference`,
-        detail:
-          "The Set does not contain a usable relative path for these references. This does not prove the files are missing on this computer.",
+        title: `${plural(externalMedia.length, "audio file is", "audio files are")} outside the Project`,
+        detail: "Ableton identifies these references as library, Pack or other external locations.",
       });
     }
     if (auDevices.length) {
@@ -839,6 +857,7 @@
   }
 
   globalScope.AbletonSetParser = {
+    classifyMediaProjectLocation,
     groupDevices,
     parseAbletonDocument,
     parseXml,

@@ -202,11 +202,13 @@
           "absolutePath": "/Samples/legacy.wav",
           "relativePath": null,
           "hasRelativePath": false,
+          "relativePathType": null,
+          "projectLocation": "unknown",
           "effectivePath": "/Samples/legacy.wav",
           "originalSize": 1024,
           "originalCrc": null,
           "sampleRate": 44100,
-          "referenceType": "Absolute-only reference"
+          "referenceType": "Unknown"
         }
       }
     ],
@@ -219,11 +221,13 @@
         "absolutePath": "/Samples/legacy.wav",
         "relativePath": null,
         "hasRelativePath": false,
+        "relativePathType": null,
+        "projectLocation": "unknown",
         "effectivePath": "/Samples/legacy.wav",
         "originalSize": 1024,
         "originalCrc": null,
         "sampleRate": 44100,
-        "referenceType": "Absolute-only reference",
+        "referenceType": "Unknown",
         "clipId": "1-audio-clip-0-10",
         "clipName": "Arrangement Audio",
         "trackId": "1",
@@ -232,13 +236,15 @@
     ],
     "uniqueFiles": [
       {
-        "key": "/samples/legacy.wav",
+        "key": "unknown|/samples/legacy.wav",
         "name": "legacy.wav",
         "absolutePath": "/Samples/legacy.wav",
         "relativePath": null,
         "effectivePath": "/Samples/legacy.wav",
         "hasRelativePath": false,
-        "referenceType": "Absolute-only reference",
+        "relativePathType": null,
+        "projectLocation": "unknown",
+        "referenceType": "Unknown",
         "originalSize": 1024,
         "sampleRate": 44100,
         "occurrences": [
@@ -268,11 +274,6 @@
   },
   "warnings": [
     {
-      "level": "warning",
-      "title": "1 audio file uses an absolute-only reference",
-      "detail": "The Set does not contain a usable relative path for these references. This does not prove the files are missing on this computer."
-    },
-    {
       "level": "notice",
       "title": "1 external routing assignment detected",
       "detail": "External hardware input and output availability cannot be verified from a web browser."
@@ -290,7 +291,8 @@
     "audioClipCount": 1,
     "midiClipCount": 0,
     "uniqueMediaCount": 1,
-    "absoluteOnlyMediaCount": 1,
+    "externalMediaCount": 0,
+    "unknownMediaLocationCount": 1,
     "frozenTrackCount": 0,
     "mutedTrackCount": 0
   },
