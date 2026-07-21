@@ -23,16 +23,13 @@ A private, browser-based MVP for inspecting Ableton Live Set (`.als`) files with
 The app has no build step.
 
 1. Download or clone the folder.
-2. Open `index.html` in a current browser.
-3. Drop an `.als` file onto the page.
-
-For the most consistent browser behaviour, serve the folder locally:
+2. Serve the folder locally (browser-native ES modules do not run reliably from `file://` URLs):
 
 ```bash
 python3 -m http.server 8080
 ```
 
-Then open `http://localhost:8080`.
+3. Open `http://localhost:8080` and drop an `.als` file onto the page.
 
 ## Deploy to GitHub Pages
 
@@ -68,7 +65,18 @@ The selected file is read into the browser's memory. This build includes no uplo
 
 - `index.html` — page structure
 - `styles.css` — responsive interface and print layout
-- `app.js` — file loading, decompression, parsing, reporting and exports
+- `app.js` — browser state, file loading, report rendering and exports
+- `src/parser/` — importable parser rules and normalisation helpers
+- `test/` — automated parser behavior tests
+
+## Development
+
+Run the automated checks with:
+
+```bash
+npm test
+npm run check
+```
 
 ## Development priorities
 

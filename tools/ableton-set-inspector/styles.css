@@ -9,7 +9,7 @@
   --faint: #6e6e68;
   --line: #30302d;
   --line-strong: #44443f;
-  --accent: #b9ff4f;
+  --accent: #ff00e5;
   --accent-text: #10130b;
   --info: #77c9ff;
   --warning: #ffcf66;
@@ -32,7 +32,7 @@
   --faint: #8b8b84;
   --line: #dcdcd4;
   --line-strong: #c5c5bc;
-  --accent: #5fd20c;
+  --accent: #ff00e5;
   --accent-text: #0d1905;
   --info: #1667a8;
   --warning: #a35e00;
@@ -186,6 +186,7 @@ footer {
 .section-heading h3 { margin: 0; font-size: 14px; letter-spacing: .02em; }
 .section-heading .count { font: 500 12px var(--mono); color: var(--muted); }
 .section-body { padding: 0; }
+.section-controls { display: flex; justify-content: flex-end; padding: 12px 22px; border-bottom: 1px solid var(--line); background: var(--surface-2); font-size: 12px; }
 .empty-state { padding: 30px 22px; color: var(--muted); }
 
 .warning-list { display: grid; }

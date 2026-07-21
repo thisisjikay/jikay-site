@@ -1,3 +1,5 @@
+import { assignTrackDisplayIndexes, calculateArrangementLength, classifyClipContext } from "./src/parser/core.js";
+
 (() => {
   "use strict";
 
@@ -6,6 +8,7 @@
     sourceXml: "",
     detail: false,
     search: "",
+    showNativeDevices: false,
     currentFile: null,
   };
 
@@ -358,6 +361,7 @@
       report.tracks.push(track);
       trackMap.set(String(track.id), track);
     });
+    assignTrackDisplayIndexes(report.tracks);
 
     report.tracks.forEach((track) => {
       if (track.parentGroupId != null && trackMap.has(String(track.parentGroupId))) {
@@ -408,12 +412,11 @@
       }));
     report.media.uniqueFiles = groupMediaReferences(report.media.references);
 
-    const allClipEnds = [...report.clips.audio, ...report.clips.midi]
-      .map((clip) => clip.end)
-      .filter(Number.isFinite);
-    const locatorTimes = report.session.locators.map((locator) => locator.time).filter(Number.isFinite);
-    const loopEnd = report.session.loop?.enabled && Number.isFinite(report.session.loop.end) ? report.session.loop.end : 0;
-    report.session.arrangementLengthBeats = Math.max(0, loopEnd, ...allClipEnds, ...locatorTimes);
+    report.session.arrangementLengthBeats = calculateArrangementLength({
+      clips: [...report.clips.audio, ...report.clips.midi],
+      locators: report.session.locators,
+      loop: report.session.loop,
+    });
     if (Number.isFinite(report.session.tempo) && report.session.tempo > 0) {
       report.session.arrangementLengthSeconds = report.session.arrangementLengthBeats * 60 / report.session.tempo;
     }
@@ -523,7 +526,7 @@
     return {
       id: node.getAttribute("Id") || `${type}-${index}`,
       index,
-      displayIndex: type === "return" ? `R${index + 1}` : type === "master" ? "M" : type === "cue" ? "C" : String(index + 1).padStart(2, "0"),
+      displayIndex: "",
       name: readName(node, `${titleCase(type)} Track ${index + 1}`),
       type,
       rawType: node.tagName,
@@ -763,7 +766,7 @@
         name: readClipName(node, `${titleCase(kind)} Clip ${index + 1}`),
         trackId: track.id,
         trackName: track.name,
-        context: hasAncestorTag(node, "ClipSlot") ? "Session" : "Arrangement",
+        context: classifyClipContext(node, trackNode),
         start,
         end,
         duration: Number.isFinite(start) && Number.isFinite(end) ? Math.max(0, end - start) : null,
@@ -1052,6 +1055,7 @@
     state.sourceXml = "";
     state.currentFile = null;
     state.search = "";
+    state.showNativeDevices = false;
     els.errorDetails.textContent = "";
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -1108,9 +1112,20 @@
   }
 
   function renderDevicesSection(report) {
-    const groups = groupDevices(report.devices);
-    if (!groups.length) return sectionTemplate("devices", "Required devices", 0, emptyState("No devices were found."));
+    const allGroups = groupDevices(report.devices);
+    if (!allGroups.length) return sectionTemplate("devices", "Required devices", 0, emptyState("No devices were found."));
+    const groups = state.showNativeDevices
+      ? allGroups
+      : allGroups.filter((group) => !group.items.every(isAbletonNativeDevice));
     return sectionTemplate("devices", "Required devices", report.devices.length, `
+      <div class="section-controls">
+        <label class="toggle-control">
+          <input id="nativeDevicesToggle" type="checkbox"${state.showNativeDevices ? " checked" : ""}>
+          <span class="toggle-ui" aria-hidden="true"></span>
+          Ableton native devices
+        </label>
+      </div>
+      ${groups.length ? `
       <div class="compact-list">
         ${groups.map((group) => {
           const formats = [...new Set(group.items.map((item) => item.format))];
@@ -1128,7 +1143,12 @@
           `;
         }).join("")}
       </div>
+      ` : emptyState("No third-party, Max for Live or other required devices were found. Enable Ableton native devices to include them.")}
     `);
+  }
+
+  function isAbletonNativeDevice(device) {
+    return device.format === "Ableton" || device.format === "Rack";
   }
 
   function renderTracksSection(report) {
@@ -1292,6 +1312,11 @@
   }
 
   function bindReportInteractions() {
+    const nativeDevicesToggle = document.querySelector("#nativeDevicesToggle");
+    nativeDevicesToggle?.addEventListener("change", () => {
+      state.showNativeDevices = nativeDevicesToggle.checked;
+      renderReport();
+    });
     document.querySelectorAll(".track-summary").forEach((button) => {
       button.addEventListener("click", () => {
         const row = button.closest(".track-row");
