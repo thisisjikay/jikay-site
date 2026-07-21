@@ -1,0 +1,294 @@
+{
+  "generatedAt": "2026-01-01T00:00:00.000Z",
+  "file": {
+    "name": "live12.als",
+    "size": 2583,
+    "lastModified": "2025-12-31T12:00:00.000Z"
+  },
+  "live": {
+    "creator": "Ableton Live 12.2.1",
+    "majorVersion": "5",
+    "minorVersion": "12.2_1",
+    "schemaChangeCount": "12"
+  },
+  "session": {
+    "tempo": 140,
+    "timeSignature": "7/8",
+    "sceneCount": 0,
+    "scenes": [],
+    "locatorCount": 1,
+    "locators": [
+      {
+        "id": "0",
+        "name": "End",
+        "time": 64
+      }
+    ],
+    "arrangementLengthBeats": 64,
+    "arrangementLengthSeconds": 27.428571428571427,
+    "loop": {
+      "enabled": false,
+      "start": 0,
+      "length": 8,
+      "end": 8
+    }
+  },
+  "tracks": [
+    {
+      "id": "20",
+      "index": 0,
+      "displayIndex": "01",
+      "name": "Live 12 Audio",
+      "type": "audio",
+      "rawType": "AudioTrack",
+      "color": 44,
+      "parentGroupId": null,
+      "parentGroupName": null,
+      "muted": false,
+      "solo": false,
+      "armed": false,
+      "frozen": false,
+      "volume": 0.9,
+      "pan": null,
+      "trackDelay": null,
+      "monitoring": null,
+      "inputRouting": null,
+      "outputRouting": "Master",
+      "deviceIds": ["20-device-1-50", "20-device-2-52", "20-device-3-51"],
+      "audioClipIds": ["20-audio-clip-0-40", "20-audio-clip-1-41"],
+      "midiClipIds": [],
+      "deviceCount": 3,
+      "audioClipCount": 2,
+      "midiClipCount": 0,
+      "automationEnvelopeCount": 0,
+      "clipEnvelopeCount": 0,
+      "hasAutomation": false
+    },
+    {
+      "id": "0",
+      "index": 1,
+      "displayIndex": "M",
+      "name": "Main",
+      "type": "master",
+      "rawType": "MasterTrack",
+      "color": null,
+      "parentGroupId": null,
+      "parentGroupName": null,
+      "muted": false,
+      "solo": false,
+      "armed": false,
+      "frozen": false,
+      "volume": null,
+      "pan": null,
+      "trackDelay": null,
+      "monitoring": null,
+      "inputRouting": null,
+      "outputRouting": null,
+      "deviceIds": [],
+      "audioClipIds": [],
+      "midiClipIds": [],
+      "deviceCount": 0,
+      "audioClipCount": 0,
+      "midiClipCount": 0,
+      "automationEnvelopeCount": 0,
+      "clipEnvelopeCount": 0,
+      "hasAutomation": false
+    }
+  ],
+  "devices": [
+    {
+      "id": "20-device-1-50",
+      "internalId": "50",
+      "name": "FX Rack",
+      "customName": "FX Rack",
+      "rawClass": "AudioEffectGroupDevice",
+      "format": "Rack",
+      "category": "rack",
+      "manufacturer": null,
+      "path": null,
+      "trackId": "20",
+      "trackName": "Live 12 Audio",
+      "position": 1,
+      "enabled": true,
+      "parentRackClass": null,
+      "parentRackName": null,
+      "branchName": null,
+      "browserPath": null
+    },
+    {
+      "id": "20-device-2-52",
+      "internalId": "52",
+      "name": "Fixture Max",
+      "customName": "Fixture Max",
+      "rawClass": "MxDeviceAudioEffect",
+      "format": "Max for Live",
+      "category": "audio-effect",
+      "manufacturer": null,
+      "path": "/User Library/Fixture.amxd",
+      "trackId": "20",
+      "trackName": "Live 12 Audio",
+      "position": 2,
+      "enabled": true,
+      "parentRackClass": null,
+      "parentRackName": null,
+      "branchName": null,
+      "browserPath": null
+    },
+    {
+      "id": "20-device-3-51",
+      "internalId": "51",
+      "name": "Roar",
+      "customName": null,
+      "rawClass": "Roar",
+      "format": "Ableton",
+      "category": "audio-effect",
+      "manufacturer": null,
+      "path": null,
+      "trackId": "20",
+      "trackName": "Live 12 Audio",
+      "position": 3,
+      "enabled": true,
+      "parentRackClass": "AudioEffectGroupDevice",
+      "parentRackName": "Audio Effect Rack",
+      "branchName": "Parallel",
+      "browserPath": null
+    }
+  ],
+  "clips": {
+    "audio": [
+      {
+        "id": "20-audio-clip-0-40",
+        "internalId": "40",
+        "kind": "audio",
+        "name": "Arrangement Print",
+        "trackId": "20",
+        "trackName": "Live 12 Audio",
+        "context": "Arrangement",
+        "start": 8,
+        "end": 48,
+        "duration": 40,
+        "loopOn": false,
+        "loopStart": null,
+        "loopEnd": null,
+        "color": null,
+        "envelopeCount": 0,
+        "warped": false,
+        "warpMode": null,
+        "gain": null,
+        "transpose": null,
+        "detune": null,
+        "warpMarkerCount": 0,
+        "sample": {
+          "name": "print.wav",
+          "absolutePath": "/Project/Samples/print.wav",
+          "relativePath": "Samples/print.wav",
+          "hasRelativePath": true,
+          "effectivePath": "Samples/print.wav",
+          "originalSize": null,
+          "originalCrc": null,
+          "sampleRate": 48000,
+          "referenceType": "Relative reference"
+        }
+      },
+      {
+        "id": "20-audio-clip-1-41",
+        "internalId": "41",
+        "kind": "audio",
+        "name": "Comp Take",
+        "trackId": "20",
+        "trackName": "Live 12 Audio",
+        "context": "Unknown",
+        "start": 0,
+        "end": 256,
+        "duration": 256,
+        "loopOn": false,
+        "loopStart": null,
+        "loopEnd": null,
+        "color": null,
+        "envelopeCount": 0,
+        "warped": false,
+        "warpMode": null,
+        "gain": null,
+        "transpose": null,
+        "detune": null,
+        "warpMarkerCount": 0,
+        "sample": null
+      }
+    ],
+    "midi": []
+  },
+  "media": {
+    "references": [
+      {
+        "name": "print.wav",
+        "absolutePath": "/Project/Samples/print.wav",
+        "relativePath": "Samples/print.wav",
+        "hasRelativePath": true,
+        "effectivePath": "Samples/print.wav",
+        "originalSize": null,
+        "originalCrc": null,
+        "sampleRate": 48000,
+        "referenceType": "Relative reference",
+        "clipId": "20-audio-clip-0-40",
+        "clipName": "Arrangement Print",
+        "trackId": "20",
+        "trackName": "Live 12 Audio"
+      }
+    ],
+    "uniqueFiles": [
+      {
+        "key": "samples/print.wav",
+        "name": "print.wav",
+        "absolutePath": "/Project/Samples/print.wav",
+        "relativePath": "Samples/print.wav",
+        "effectivePath": "Samples/print.wav",
+        "hasRelativePath": true,
+        "referenceType": "Relative reference",
+        "originalSize": null,
+        "sampleRate": 48000,
+        "occurrences": [
+          {
+            "clipName": "Arrangement Print",
+            "trackName": "Live 12 Audio",
+            "clipId": "20-audio-clip-0-40"
+          }
+        ]
+      }
+    ]
+  },
+  "automation": {
+    "trackEnvelopeCount": 0,
+    "clipEnvelopeCount": 0,
+    "tracksWithAutomation": 0
+  },
+  "routing": {
+    "externalInputs": [],
+    "externalOutputs": []
+  },
+  "warnings": [
+    {
+      "level": "warning",
+      "title": "1 Max for Live device has an absolute path",
+      "detail": "The device path may not resolve on another computer unless the device is also available in that user’s library."
+    }
+  ],
+  "stats": {
+    "trackCount": 1,
+    "returnCount": 0,
+    "groupCount": 0,
+    "deviceCount": 3,
+    "pluginCount": 0,
+    "uniquePluginCount": 0,
+    "maxDeviceCount": 1,
+    "rackCount": 1,
+    "audioClipCount": 2,
+    "midiClipCount": 0,
+    "uniqueMediaCount": 1,
+    "absoluteOnlyMediaCount": 0,
+    "frozenTrackCount": 0,
+    "mutedTrackCount": 0
+  },
+  "parser": {
+    "unrecognisedDeviceClasses": []
+  }
+}

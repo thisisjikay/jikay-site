@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Ableton MajorVersion="5" MinorVersion="11.3_21" SchemaChangeCount="7" Creator="Ableton Live 11.3.21">
+  <LiveSet>
+    <Tracks>
+      <GroupTrack Id="10"><Name><EffectiveName Value="Band"/></Name><ColorIndex Value="12"/><TrackGroupId Value="-1"/><DeviceChain><Mixer><On><Manual Value="true"/></On></Mixer></DeviceChain></GroupTrack>
+      <MidiTrack Id="11">
+        <Name><EffectiveName Value="Live 11 MIDI"/></Name><ColorIndex Value="18"/><TrackGroupId Value="10"/><Freeze Value="true"/>
+        <DeviceChain>
+          <MidiInputRouting><UpperDisplayString Value="All Ins"/><LowerDisplayString Value="All Channels"/></MidiInputRouting>
+          <AudioOutputRouting><UpperDisplayString Value="Master"/></AudioOutputRouting>
+          <Mixer><On><Manual Value="true"/></On><Arm Value="true"/><Volume><Manual Value="0.7"/></Volume></Mixer>
+          <MainSequencer><ClipSlotList><ClipSlot><Value><MidiClip Id="30" Time="0"><CurrentStart Value="0"/><CurrentEnd Value="64"/><Name Value="Session MIDI"/><Notes><KeyTracks><KeyTrack Id="60"><Notes><MidiNoteEvent Time="0" Duration="1" Velocity="100" Probability="0.75"/></Notes></KeyTrack></KeyTracks></Notes></MidiClip></Value></ClipSlot></ClipSlotList></MainSequencer>
+          <DeviceChain><Devices><PluginDevice Id="31"><On><Manual Value="true"/></On><PluginDesc><Vst3PluginInfo><Name Value="Modern VST3"/><Manufacturer Value="Fixture Co"/><DeviceType Value="1"/></Vst3PluginInfo></PluginDesc></PluginDevice></Devices></DeviceChain>
+        </DeviceChain>
+      </MidiTrack>
+    </Tracks>
+    <ReturnTracks><ReturnTrack Id="12"><Name><EffectiveName Value="A Reverb"/></Name><TrackGroupId Value="-1"/><DeviceChain><Mixer><On><Manual Value="true"/></On></Mixer></DeviceChain></ReturnTrack></ReturnTracks>
+    <MasterTrack Id="0"><Name><EffectiveName Value="Master"/></Name><DeviceChain><Mixer><Tempo><Manual Value="128"/></Tempo><On><Manual Value="true"/></On></Mixer></DeviceChain></MasterTrack>
+    <Scenes><Scene Id="0"><Name><EffectiveName Value="Verse"/></Name></Scene><Scene Id="1"><Name><EffectiveName Value="Chorus"/></Name></Scene></Scenes>
+    <Locators><Locator Id="0"><Time Value="24"/><Name Value="Drop"/></Locator></Locators>
+    <TimeSignature><TimeSignatures><RemoteableTimeSignature><Numerator Value="3"/><Denominator Value="4"/></RemoteableTimeSignature></TimeSignatures></TimeSignature>
+    <LoopOn Value="true"/><LoopStart Value="0"/><LoopLength Value="16"/>
+  </LiveSet>
+</Ableton>

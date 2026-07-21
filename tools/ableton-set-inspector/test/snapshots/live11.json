@@ -1,0 +1,259 @@
+{
+  "generatedAt": "2026-01-01T00:00:00.000Z",
+  "file": {
+    "name": "live11.als",
+    "size": 2491,
+    "lastModified": "2025-12-31T12:00:00.000Z"
+  },
+  "live": {
+    "creator": "Ableton Live 11.3.21",
+    "majorVersion": "5",
+    "minorVersion": "11.3_21",
+    "schemaChangeCount": "7"
+  },
+  "session": {
+    "tempo": 128,
+    "timeSignature": "3/4",
+    "sceneCount": 2,
+    "scenes": [
+      {
+        "index": 1,
+        "id": "0",
+        "name": "Verse",
+        "color": null,
+        "tempo": null
+      },
+      {
+        "index": 2,
+        "id": "1",
+        "name": "Chorus",
+        "color": null,
+        "tempo": null
+      }
+    ],
+    "locatorCount": 1,
+    "locators": [
+      {
+        "id": "0",
+        "name": "Drop",
+        "time": 24
+      }
+    ],
+    "arrangementLengthBeats": 24,
+    "arrangementLengthSeconds": 11.25,
+    "loop": {
+      "enabled": true,
+      "start": 0,
+      "length": 16,
+      "end": 16
+    }
+  },
+  "tracks": [
+    {
+      "id": "10",
+      "index": 0,
+      "displayIndex": "01",
+      "name": "Band",
+      "type": "group",
+      "rawType": "GroupTrack",
+      "color": 12,
+      "parentGroupId": null,
+      "parentGroupName": null,
+      "muted": false,
+      "solo": false,
+      "armed": false,
+      "frozen": false,
+      "volume": null,
+      "pan": null,
+      "trackDelay": null,
+      "monitoring": null,
+      "inputRouting": null,
+      "outputRouting": null,
+      "deviceIds": [],
+      "audioClipIds": [],
+      "midiClipIds": [],
+      "deviceCount": 0,
+      "audioClipCount": 0,
+      "midiClipCount": 0,
+      "automationEnvelopeCount": 0,
+      "clipEnvelopeCount": 0,
+      "hasAutomation": false
+    },
+    {
+      "id": "11",
+      "index": 1,
+      "displayIndex": "02",
+      "name": "Live 11 MIDI",
+      "type": "midi",
+      "rawType": "MidiTrack",
+      "color": 18,
+      "parentGroupId": "10",
+      "parentGroupName": "Band",
+      "muted": false,
+      "solo": false,
+      "armed": true,
+      "frozen": true,
+      "volume": 0.7,
+      "pan": null,
+      "trackDelay": null,
+      "monitoring": null,
+      "inputRouting": "All Ins — All Channels",
+      "outputRouting": "Master",
+      "deviceIds": ["11-device-1-31"],
+      "audioClipIds": [],
+      "midiClipIds": ["11-midi-clip-0-30"],
+      "deviceCount": 1,
+      "audioClipCount": 0,
+      "midiClipCount": 1,
+      "automationEnvelopeCount": 0,
+      "clipEnvelopeCount": 0,
+      "hasAutomation": false
+    },
+    {
+      "id": "12",
+      "index": 2,
+      "displayIndex": "R1",
+      "name": "A Reverb",
+      "type": "return",
+      "rawType": "ReturnTrack",
+      "color": null,
+      "parentGroupId": null,
+      "parentGroupName": null,
+      "muted": false,
+      "solo": false,
+      "armed": false,
+      "frozen": false,
+      "volume": null,
+      "pan": null,
+      "trackDelay": null,
+      "monitoring": null,
+      "inputRouting": null,
+      "outputRouting": null,
+      "deviceIds": [],
+      "audioClipIds": [],
+      "midiClipIds": [],
+      "deviceCount": 0,
+      "audioClipCount": 0,
+      "midiClipCount": 0,
+      "automationEnvelopeCount": 0,
+      "clipEnvelopeCount": 0,
+      "hasAutomation": false
+    },
+    {
+      "id": "0",
+      "index": 3,
+      "displayIndex": "M",
+      "name": "Master",
+      "type": "master",
+      "rawType": "MasterTrack",
+      "color": null,
+      "parentGroupId": null,
+      "parentGroupName": null,
+      "muted": false,
+      "solo": false,
+      "armed": false,
+      "frozen": false,
+      "volume": null,
+      "pan": null,
+      "trackDelay": null,
+      "monitoring": null,
+      "inputRouting": null,
+      "outputRouting": null,
+      "deviceIds": [],
+      "audioClipIds": [],
+      "midiClipIds": [],
+      "deviceCount": 0,
+      "audioClipCount": 0,
+      "midiClipCount": 0,
+      "automationEnvelopeCount": 0,
+      "clipEnvelopeCount": 0,
+      "hasAutomation": false
+    }
+  ],
+  "devices": [
+    {
+      "id": "11-device-1-31",
+      "internalId": "31",
+      "name": "Modern VST3",
+      "customName": null,
+      "rawClass": "PluginDevice",
+      "format": "VST3",
+      "category": "instrument",
+      "manufacturer": "Fixture Co",
+      "path": null,
+      "trackId": "11",
+      "trackName": "Live 11 MIDI",
+      "position": 1,
+      "enabled": true,
+      "parentRackClass": null,
+      "parentRackName": null,
+      "branchName": null,
+      "browserPath": null
+    }
+  ],
+  "clips": {
+    "audio": [],
+    "midi": [
+      {
+        "id": "11-midi-clip-0-30",
+        "internalId": "30",
+        "kind": "midi",
+        "name": "Session MIDI",
+        "trackId": "11",
+        "trackName": "Live 11 MIDI",
+        "context": "Session",
+        "start": 0,
+        "end": 64,
+        "duration": 64,
+        "loopOn": false,
+        "loopStart": null,
+        "loopEnd": null,
+        "color": null,
+        "envelopeCount": 0,
+        "noteCount": 1,
+        "lowestNote": 60,
+        "highestNote": 60,
+        "notesWithProbability": 1
+      }
+    ]
+  },
+  "media": {
+    "references": [],
+    "uniqueFiles": []
+  },
+  "automation": {
+    "trackEnvelopeCount": 0,
+    "clipEnvelopeCount": 0,
+    "tracksWithAutomation": 0
+  },
+  "routing": {
+    "externalInputs": [],
+    "externalOutputs": []
+  },
+  "warnings": [
+    {
+      "level": "info",
+      "title": "1 track is frozen",
+      "detail": "Frozen tracks may make project transfer safer when the receiving system lacks a device or plug-in."
+    }
+  ],
+  "stats": {
+    "trackCount": 2,
+    "returnCount": 1,
+    "groupCount": 1,
+    "deviceCount": 1,
+    "pluginCount": 1,
+    "uniquePluginCount": 1,
+    "maxDeviceCount": 0,
+    "rackCount": 0,
+    "audioClipCount": 0,
+    "midiClipCount": 1,
+    "uniqueMediaCount": 0,
+    "absoluteOnlyMediaCount": 0,
+    "frozenTrackCount": 1,
+    "mutedTrackCount": 0
+  },
+  "parser": {
+    "unrecognisedDeviceClasses": []
+  }
+}

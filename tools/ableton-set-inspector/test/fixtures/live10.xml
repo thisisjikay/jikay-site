@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Ableton MajorVersion="4" MinorVersion="10.1_42" SchemaChangeCount="3" Creator="Ableton Live 10.1.42">
+  <LiveSet>
+    <Tracks>
+      <AudioTrack Id="1">
+        <Name><EffectiveName Value="Live 10 Audio"/><UserName Value="Live 10 Audio"/></Name>
+        <Color Value="4"/><TrackGroupId Value="-1"/>
+        <DeviceChain>
+          <AudioInputRouting><Target Value="AudioIn/External/S0"/><UpperDisplayString Value="Ext. In"/><LowerDisplayString Value="1"/></AudioInputRouting>
+          <AudioOutputRouting><Target Value="AudioOut/Master"/><UpperDisplayString Value="Master"/></AudioOutputRouting>
+          <Mixer><On><Manual Value="true"/></On><Volume><Manual Value="0.8"/></Volume><Pan><Manual Value="0"/></Pan></Mixer>
+          <MainSequencer><Sample><ArrangerAutomation><Events>
+            <AudioClip Id="10" Time="0"><CurrentStart Value="0"/><CurrentEnd Value="32"/><Name Value="Arrangement Audio"/><IsWarped Value="true"/><WarpMode Value="4"/><SampleRef><FileRef><HasRelativePath Value="false"/><Name Value="legacy.wav"/><Path Value="/Samples/legacy.wav"/><OriginalFileSize Value="1024"/></FileRef><SampleRate Value="44100"/></SampleRef></AudioClip>
+          </Events></ArrangerAutomation></Sample></MainSequencer>
+          <DeviceChain><Devices><PluginDevice Id="20"><On><Manual Value="true"/></On><PluginDesc><VstPluginInfo><PlugName Value="Legacy VST"/><Path Value="/Library/Legacy.vst"/><DeviceType Value="2"/></VstPluginInfo></PluginDesc></PluginDevice></Devices></DeviceChain>
+        </DeviceChain>
+      </AudioTrack>
+    </Tracks>
+    <ReturnTracks><ReturnTrack Id="2"><Name><EffectiveName Value="A Delay"/></Name><TrackGroupId Value="-1"/><DeviceChain><Mixer><On><Manual Value="true"/></On></Mixer><DeviceChain><Devices><SimpleDelay Id="21"><On><Manual Value="true"/></On></SimpleDelay></Devices></DeviceChain></DeviceChain></ReturnTrack></ReturnTracks>
+    <MasterTrack Id="0"><Name><EffectiveName Value="Master"/></Name><DeviceChain><Mixer><Tempo><Manual Value="120"/></Tempo><On><Manual Value="true"/></On></Mixer></DeviceChain></MasterTrack>
+    <Scenes><Scene Id="0"><Name><EffectiveName Value="Scene 1"/></Name></Scene></Scenes>
+    <Locators><Locator Id="0"><Time Value="16"/><Name Value="Middle"/></Locator></Locators>
+    <TimeSignature><TimeSignatures><RemoteableTimeSignature><Numerator Value="4"/><Denominator Value="4"/></RemoteableTimeSignature></TimeSignatures></TimeSignature>
+    <LoopOn Value="false"/><LoopStart Value="0"/><LoopLength Value="8"/>
+  </LiveSet>
+</Ableton>

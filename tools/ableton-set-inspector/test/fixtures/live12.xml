@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Ableton MajorVersion="5" MinorVersion="12.2_1" SchemaChangeCount="12" Creator="Ableton Live 12.2.1">
+  <LiveSet>
+    <Tracks>
+      <AudioTrack Id="20">
+        <Name><EffectiveName Value="Live 12 Audio"/></Name><Color Value="44"/><TrackGroupId Value="-1"/>
+        <DeviceChain>
+          <AudioOutputRouting><Target Value="AudioOut/Master"/><UpperDisplayString Value="Master"/></AudioOutputRouting>
+          <Mixer><On><Manual Value="true"/></On><Volume><Manual Value="0.9"/></Volume></Mixer>
+          <MainSequencer>
+            <Sample><ArrangerAutomation><Events><AudioClip Id="40" Time="8"><CurrentStart Value="8"/><CurrentEnd Value="48"/><Name Value="Arrangement Print"/><IsWarped Value="false"/><SampleRef><FileRef><HasRelativePath Value="true"/><RelativePath Value="Samples/print.wav"/><Name Value="print.wav"/><Path Value="/Project/Samples/print.wav"/></FileRef><SampleRate Value="48000"/></SampleRef></AudioClip></Events></ArrangerAutomation></Sample>
+            <TakeLanes><TakeLane Id="1"><AudioClip Id="41" Time="0"><CurrentStart Value="0"/><CurrentEnd Value="256"/><Name Value="Comp Take"/></AudioClip></TakeLane></TakeLanes>
+          </MainSequencer>
+          <DeviceChain><Devices>
+            <AudioEffectGroupDevice Id="50"><On><Manual Value="true"/></On><UserName Value="FX Rack"/><Branches><AudioEffectBranch Id="1"><Name><EffectiveName Value="Parallel"/></Name><DeviceChain><AudioToAudioDeviceChain><Devices><Roar Id="51"><On><Manual Value="true"/></On></Roar></Devices></AudioToAudioDeviceChain></DeviceChain></AudioEffectBranch></Branches></AudioEffectGroupDevice>
+            <MxDeviceAudioEffect Id="52"><On><Manual Value="true"/></On><UserName Value="Fixture Max"/><SourceContext><OriginalFileRef><FileRef><Name Value="Fixture.amxd"/><Path Value="/User Library/Fixture.amxd"/></FileRef></OriginalFileRef></SourceContext></MxDeviceAudioEffect>
+          </Devices></DeviceChain>
+        </DeviceChain>
+      </AudioTrack>
+    </Tracks>
+    <ReturnTracks/>
+    <MasterTrack Id="0"><Name><EffectiveName Value="Main"/></Name><DeviceChain><Mixer><Tempo><Manual Value="140"/></Tempo><On><Manual Value="true"/></On></Mixer></DeviceChain></MasterTrack>
+    <Scenes/>
+    <Locators><Locator Id="0"><Time Value="64"/><Name Value="End"/></Locator></Locators>
+    <TimeSignature><TimeSignatures><RemoteableTimeSignature><Numerator Value="7"/><Denominator Value="8"/></RemoteableTimeSignature></TimeSignatures></TimeSignature>
+    <LoopOn Value="false"/><LoopStart Value="0"/><LoopLength Value="8"/>
+  </LiveSet>
+</Ableton>

@@ -1,0 +1,300 @@
+{
+  "generatedAt": "2026-01-01T00:00:00.000Z",
+  "file": {
+    "name": "live10.als",
+    "size": 2550,
+    "lastModified": "2025-12-31T12:00:00.000Z"
+  },
+  "live": {
+    "creator": "Ableton Live 10.1.42",
+    "majorVersion": "4",
+    "minorVersion": "10.1_42",
+    "schemaChangeCount": "3"
+  },
+  "session": {
+    "tempo": 120,
+    "timeSignature": "4/4",
+    "sceneCount": 1,
+    "scenes": [
+      {
+        "index": 1,
+        "id": "0",
+        "name": "Scene 1",
+        "color": null,
+        "tempo": null
+      }
+    ],
+    "locatorCount": 1,
+    "locators": [
+      {
+        "id": "0",
+        "name": "Middle",
+        "time": 16
+      }
+    ],
+    "arrangementLengthBeats": 32,
+    "arrangementLengthSeconds": 16,
+    "loop": {
+      "enabled": false,
+      "start": 0,
+      "length": 8,
+      "end": 8
+    }
+  },
+  "tracks": [
+    {
+      "id": "1",
+      "index": 0,
+      "displayIndex": "01",
+      "name": "Live 10 Audio",
+      "type": "audio",
+      "rawType": "AudioTrack",
+      "color": 4,
+      "parentGroupId": null,
+      "parentGroupName": null,
+      "muted": false,
+      "solo": false,
+      "armed": false,
+      "frozen": false,
+      "volume": 0.8,
+      "pan": 0,
+      "trackDelay": null,
+      "monitoring": null,
+      "inputRouting": "Ext. In — 1",
+      "outputRouting": "Master",
+      "deviceIds": ["1-device-1-20"],
+      "audioClipIds": ["1-audio-clip-0-10"],
+      "midiClipIds": [],
+      "deviceCount": 1,
+      "audioClipCount": 1,
+      "midiClipCount": 0,
+      "automationEnvelopeCount": 0,
+      "clipEnvelopeCount": 0,
+      "hasAutomation": false
+    },
+    {
+      "id": "2",
+      "index": 1,
+      "displayIndex": "R1",
+      "name": "A Delay",
+      "type": "return",
+      "rawType": "ReturnTrack",
+      "color": null,
+      "parentGroupId": null,
+      "parentGroupName": null,
+      "muted": false,
+      "solo": false,
+      "armed": false,
+      "frozen": false,
+      "volume": null,
+      "pan": null,
+      "trackDelay": null,
+      "monitoring": null,
+      "inputRouting": null,
+      "outputRouting": null,
+      "deviceIds": ["2-device-1-21"],
+      "audioClipIds": [],
+      "midiClipIds": [],
+      "deviceCount": 1,
+      "audioClipCount": 0,
+      "midiClipCount": 0,
+      "automationEnvelopeCount": 0,
+      "clipEnvelopeCount": 0,
+      "hasAutomation": false
+    },
+    {
+      "id": "0",
+      "index": 2,
+      "displayIndex": "M",
+      "name": "Master",
+      "type": "master",
+      "rawType": "MasterTrack",
+      "color": null,
+      "parentGroupId": null,
+      "parentGroupName": null,
+      "muted": false,
+      "solo": false,
+      "armed": false,
+      "frozen": false,
+      "volume": null,
+      "pan": null,
+      "trackDelay": null,
+      "monitoring": null,
+      "inputRouting": null,
+      "outputRouting": null,
+      "deviceIds": [],
+      "audioClipIds": [],
+      "midiClipIds": [],
+      "deviceCount": 0,
+      "audioClipCount": 0,
+      "midiClipCount": 0,
+      "automationEnvelopeCount": 0,
+      "clipEnvelopeCount": 0,
+      "hasAutomation": false
+    }
+  ],
+  "devices": [
+    {
+      "id": "1-device-1-20",
+      "internalId": "20",
+      "name": "Legacy VST",
+      "customName": null,
+      "rawClass": "PluginDevice",
+      "format": "VST2",
+      "category": "audio-effect",
+      "manufacturer": null,
+      "path": "/Library/Legacy.vst",
+      "trackId": "1",
+      "trackName": "Live 10 Audio",
+      "position": 1,
+      "enabled": true,
+      "parentRackClass": null,
+      "parentRackName": null,
+      "branchName": null,
+      "browserPath": null
+    },
+    {
+      "id": "2-device-1-21",
+      "internalId": "21",
+      "name": "Simple Delay",
+      "customName": null,
+      "rawClass": "SimpleDelay",
+      "format": "Ableton",
+      "category": "audio-effect",
+      "manufacturer": null,
+      "path": null,
+      "trackId": "2",
+      "trackName": "A Delay",
+      "position": 1,
+      "enabled": true,
+      "parentRackClass": null,
+      "parentRackName": null,
+      "branchName": null,
+      "browserPath": null
+    }
+  ],
+  "clips": {
+    "audio": [
+      {
+        "id": "1-audio-clip-0-10",
+        "internalId": "10",
+        "kind": "audio",
+        "name": "Arrangement Audio",
+        "trackId": "1",
+        "trackName": "Live 10 Audio",
+        "context": "Arrangement",
+        "start": 0,
+        "end": 32,
+        "duration": 32,
+        "loopOn": false,
+        "loopStart": null,
+        "loopEnd": null,
+        "color": null,
+        "envelopeCount": 0,
+        "warped": true,
+        "warpMode": "Complex",
+        "gain": null,
+        "transpose": null,
+        "detune": null,
+        "warpMarkerCount": 0,
+        "sample": {
+          "name": "legacy.wav",
+          "absolutePath": "/Samples/legacy.wav",
+          "relativePath": null,
+          "hasRelativePath": false,
+          "effectivePath": "/Samples/legacy.wav",
+          "originalSize": 1024,
+          "originalCrc": null,
+          "sampleRate": 44100,
+          "referenceType": "Absolute-only reference"
+        }
+      }
+    ],
+    "midi": []
+  },
+  "media": {
+    "references": [
+      {
+        "name": "legacy.wav",
+        "absolutePath": "/Samples/legacy.wav",
+        "relativePath": null,
+        "hasRelativePath": false,
+        "effectivePath": "/Samples/legacy.wav",
+        "originalSize": 1024,
+        "originalCrc": null,
+        "sampleRate": 44100,
+        "referenceType": "Absolute-only reference",
+        "clipId": "1-audio-clip-0-10",
+        "clipName": "Arrangement Audio",
+        "trackId": "1",
+        "trackName": "Live 10 Audio"
+      }
+    ],
+    "uniqueFiles": [
+      {
+        "key": "/samples/legacy.wav",
+        "name": "legacy.wav",
+        "absolutePath": "/Samples/legacy.wav",
+        "relativePath": null,
+        "effectivePath": "/Samples/legacy.wav",
+        "hasRelativePath": false,
+        "referenceType": "Absolute-only reference",
+        "originalSize": 1024,
+        "sampleRate": 44100,
+        "occurrences": [
+          {
+            "clipName": "Arrangement Audio",
+            "trackName": "Live 10 Audio",
+            "clipId": "1-audio-clip-0-10"
+          }
+        ]
+      }
+    ]
+  },
+  "automation": {
+    "trackEnvelopeCount": 0,
+    "clipEnvelopeCount": 0,
+    "tracksWithAutomation": 0
+  },
+  "routing": {
+    "externalInputs": [
+      {
+        "trackId": "1",
+        "trackName": "Live 10 Audio",
+        "routing": "Ext. In — 1"
+      }
+    ],
+    "externalOutputs": []
+  },
+  "warnings": [
+    {
+      "level": "warning",
+      "title": "1 audio file uses an absolute-only reference",
+      "detail": "The Set does not contain a usable relative path for these references. This does not prove the files are missing on this computer."
+    },
+    {
+      "level": "notice",
+      "title": "1 external routing assignment detected",
+      "detail": "External hardware input and output availability cannot be verified from a web browser."
+    }
+  ],
+  "stats": {
+    "trackCount": 1,
+    "returnCount": 1,
+    "groupCount": 0,
+    "deviceCount": 2,
+    "pluginCount": 1,
+    "uniquePluginCount": 1,
+    "maxDeviceCount": 0,
+    "rackCount": 0,
+    "audioClipCount": 1,
+    "midiClipCount": 0,
+    "uniqueMediaCount": 1,
+    "absoluteOnlyMediaCount": 1,
+    "frozenTrackCount": 0,
+    "mutedTrackCount": 0
+  },
+  "parser": {
+    "unrecognisedDeviceClasses": []
+  }
+}

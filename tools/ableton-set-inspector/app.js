@@ -1,7 +1,8 @@
 (() => {
   "use strict";
 
-  const { assignTrackDisplayIndexes, calculateArrangementLength, classifyClipContext } = globalThis.AbletonSetParserCore;
+  const { groupDevices, parseAbletonDocument, parseXml } = globalThis.AbletonSetParser;
+  const { titleCase } = globalThis.AbletonSetXmlUtils;
 
   const state = {
     report: null,
@@ -9,6 +10,7 @@
     detail: false,
     search: "",
     showNativeDevices: false,
+    collapsedSections: new Set(),
     currentFile: null,
   };
 
@@ -41,109 +43,9 @@
     newSetButton: $("#newSetButton"),
     copyButton: $("#copyButton"),
     textButton: $("#textButton"),
-    jsonButton: $("#jsonButton"),
     printButton: $("#printButton"),
     themeButton: $("#themeButton"),
   };
-
-  const FRIENDLY_DEVICE_NAMES = {
-    AudioEffectGroupDevice: "Audio Effect Rack",
-    InstrumentGroupDevice: "Instrument Rack",
-    MidiEffectGroupDevice: "MIDI Effect Rack",
-    DrumGroupDevice: "Drum Rack",
-    Eq8: "EQ Eight",
-    Compressor2: "Compressor",
-    GlueCompressor: "Glue Compressor",
-    AutoFilter: "Auto Filter",
-    AutoPan: "Auto Pan",
-    BeatRepeat: "Beat Repeat",
-    ChannelEq: "Channel EQ",
-    Corpus: "Corpus",
-    Delay: "Delay",
-    Echo: "Echo",
-    FilterDelay: "Filter Delay",
-    FrequencyShifter: "Frequency Shifter",
-    Gate: "Gate",
-    Limiter: "Limiter",
-    Looper: "Looper",
-    MultibandDynamics: "Multiband Dynamics",
-    Overdrive: "Overdrive",
-    Phaser: "Phaser",
-    PhaserNew: "Phaser-Flanger",
-    Redux: "Redux",
-    Reverb: "Reverb",
-    Saturator: "Saturator",
-    SimpleDelay: "Simple Delay",
-    Spectrum: "Spectrum",
-    Tuner: "Tuner",
-    Utility: "Utility",
-    Vinyl: "Vinyl Distortion",
-    Amp: "Amp",
-    Cabinet: "Cabinet",
-    Pedal: "Pedal",
-    DynamicTube: "Dynamic Tube",
-    Erosion: "Erosion",
-    Resonator: "Resonators",
-    Vocoder: "Vocoder",
-    Hybrid: "Hybrid Reverb",
-    ConvolutionReverb: "Convolution Reverb",
-    Roar: "Roar",
-    Meld: "Meld",
-    GranulatorIII: "Granulator III",
-    UltraAnalog: "Analog",
-    Collision: "Collision",
-    Electric: "Electric",
-    InstrumentVector: "Wavetable",
-    Operator: "Operator",
-    OriginalSimpler: "Simpler",
-    MultiSampler: "Sampler",
-    StringStudio: "Tension",
-    MidiArpeggiator: "Arpeggiator",
-    MidiChord: "Chord",
-    MidiPitcher: "Pitch",
-    MidiRandom: "Random",
-    MidiScale: "Scale",
-    MidiVelocity: "Velocity",
-    NoteLength: "Note Length",
-  };
-
-  const RACK_TAGS = new Set([
-    "AudioEffectGroupDevice",
-    "InstrumentGroupDevice",
-    "MidiEffectGroupDevice",
-    "DrumGroupDevice",
-  ]);
-
-  const TRACK_TAGS = new Set([
-    "AudioTrack",
-    "MidiTrack",
-    "GroupTrack",
-    "ReturnTrack",
-    "MasterTrack",
-    "PreHearTrack",
-  ]);
-
-  const WARP_MODES = {
-    0: "Beats",
-    1: "Tones",
-    2: "Texture",
-    3: "Re-Pitch",
-    4: "Complex",
-    5: "Rex",
-    6: "Complex Pro",
-  };
-
-  const TRACK_COLOURS = [
-    "#ff94a6", "#ffa529", "#f9df4b", "#b7d95c", "#69d59d", "#63d3d6", "#6cb6ff", "#8ba1ff",
-    "#b79aff", "#e392d0", "#d3d3d3", "#f26767", "#f58f33", "#d1bc3a", "#85b44b", "#4db37a",
-    "#34b8b3", "#4a98d1", "#6f7bd3", "#8b68c9", "#c36bb0", "#a5a5a5", "#b95757", "#c06c2f",
-    "#9b8d31", "#63873a", "#348459", "#258683", "#33739a", "#515b9b", "#674c91", "#8e4e80",
-    "#777777", "#843838", "#8c4f24", "#6e6424", "#486126", "#245d3e", "#175c5b", "#24516e",
-    "#3c416f", "#49346a", "#66365c", "#555555", "#ff3636", "#ff6f00", "#e7b800", "#7cb600",
-    "#00a65a", "#00a9a5", "#0089d4", "#3f5bdb", "#7351d8", "#c53aa8", "#b5b5b5", "#d31b1b",
-    "#d65300", "#b58f00", "#5b8700", "#008440", "#008380", "#0069a2", "#3046a7", "#583ca5",
-    "#982980", "#8b8b8b", "#5e1616", "#652f00", "#5c4b00", "#2f4b00", "#004b24", "#004946",
-  ];
 
   function init() {
     bindEvents();
@@ -202,7 +104,6 @@
     });
     els.copyButton.addEventListener("click", copyReport);
     els.textButton.addEventListener("click", exportText);
-    els.jsonButton.addEventListener("click", exportJson);
     els.printButton.addEventListener("click", () => window.print());
     els.themeButton.addEventListener("click", toggleTheme);
   }
@@ -210,7 +111,8 @@
   function detectSupport() {
     if (!("DecompressionStream" in window)) {
       els.supportNote.hidden = false;
-      els.supportNote.textContent = "This browser does not provide native gzip decompression. Use a current version of Chrome, Edge, Firefox or Safari.";
+      els.supportNote.textContent =
+        "This browser does not provide native gzip decompression. Use a current version of Chrome, Edge, Firefox or Safari.";
     }
   }
 
@@ -229,7 +131,11 @@
     const current = document.documentElement.dataset.theme || "dark";
     const next = current === "dark" ? "light" : "dark";
     document.documentElement.dataset.theme = next;
-    try { localStorage.setItem("asi-theme", next); } catch { /* Storage is optional. */ }
+    try {
+      localStorage.setItem("asi-theme", next);
+    } catch {
+      /* Storage is optional. */
+    }
   }
 
   async function inspectFile(file) {
@@ -288,720 +194,6 @@
     }
   }
 
-  function parseXml(xmlText) {
-    const doc = new DOMParser().parseFromString(xmlText, "application/xml");
-    const parserError = doc.querySelector("parsererror");
-    if (parserError) {
-      throw userError("The Set was decompressed, but its XML could not be read.", parserError.textContent);
-    }
-    if (!doc.documentElement || doc.documentElement.tagName !== "Ableton") {
-      throw userError("The file contains XML, but it does not appear to be an Ableton Live Set.");
-    }
-    return doc;
-  }
-
-  function parseAbletonDocument(doc, fileMeta) {
-    const root = doc.documentElement;
-    const liveSet = firstByTag(root, "LiveSet");
-    if (!liveSet) throw userError("No LiveSet section was found in this file.");
-
-    const report = {
-      generatedAt: new Date().toISOString(),
-      file: {
-        name: fileMeta.name,
-        size: fileMeta.size,
-        lastModified: fileMeta.lastModified ? new Date(fileMeta.lastModified).toISOString() : null,
-      },
-      live: {
-        creator: root.getAttribute("Creator") || "Unknown",
-        majorVersion: root.getAttribute("MajorVersion") || "Unknown",
-        minorVersion: root.getAttribute("MinorVersion") || "Unknown",
-        schemaChangeCount: root.getAttribute("SchemaChangeCount") || "Unknown",
-      },
-      session: {
-        tempo: null,
-        timeSignature: null,
-        sceneCount: 0,
-        scenes: [],
-        locatorCount: 0,
-        locators: [],
-        arrangementLengthBeats: 0,
-        arrangementLengthSeconds: null,
-        loop: null,
-      },
-      tracks: [],
-      devices: [],
-      clips: { audio: [], midi: [] },
-      media: { references: [], uniqueFiles: [] },
-      automation: { trackEnvelopeCount: 0, clipEnvelopeCount: 0, tracksWithAutomation: 0 },
-      routing: { externalInputs: [], externalOutputs: [] },
-      warnings: [],
-      stats: {},
-      parser: { unrecognisedDeviceClasses: [] },
-    };
-
-    report.session.tempo = parseTempo(liveSet);
-    report.session.timeSignature = parseTimeSignature(liveSet);
-    report.session.scenes = parseScenes(liveSet);
-    report.session.sceneCount = report.session.scenes.length;
-    report.session.locators = parseLocators(liveSet);
-    report.session.locatorCount = report.session.locators.length;
-    report.session.loop = parseArrangementLoop(liveSet);
-
-    const trackNodes = collectTrackNodes(liveSet);
-    const trackMap = new Map();
-
-    trackNodes.forEach((trackNode, index) => {
-      const track = parseTrack(trackNode, index);
-      report.tracks.push(track);
-      trackMap.set(String(track.id), track);
-    });
-    assignTrackDisplayIndexes(report.tracks);
-
-    report.tracks.forEach((track) => {
-      if (track.parentGroupId != null && trackMap.has(String(track.parentGroupId))) {
-        track.parentGroupName = trackMap.get(String(track.parentGroupId)).name;
-      }
-    });
-
-    trackNodes.forEach((trackNode, index) => {
-      const track = report.tracks[index];
-      const devices = parseDevices(trackNode, track);
-      track.deviceIds = devices.map((device) => device.id);
-      track.deviceCount = devices.length;
-      report.devices.push(...devices);
-
-      const audioClips = parseClips(trackNode, track, "audio");
-      const midiClips = parseClips(trackNode, track, "midi");
-      track.audioClipIds = audioClips.map((clip) => clip.id);
-      track.midiClipIds = midiClips.map((clip) => clip.id);
-      track.audioClipCount = audioClips.length;
-      track.midiClipCount = midiClips.length;
-      report.clips.audio.push(...audioClips);
-      report.clips.midi.push(...midiClips);
-
-      const envelopes = uniqueElements([
-        ...allByTag(trackNode, "AutomationEnvelope"),
-        ...allByTag(trackNode, "ClipEnvelope"),
-      ]);
-      const clipEnvelopeCount = envelopes.filter((node) => hasAncestorTag(node, "AudioClip") || hasAncestorTag(node, "MidiClip")).length;
-      const trackEnvelopeCount = Math.max(0, envelopes.length - clipEnvelopeCount);
-      track.automationEnvelopeCount = trackEnvelopeCount;
-      track.clipEnvelopeCount = clipEnvelopeCount;
-      track.hasAutomation = envelopes.length > 0;
-      report.automation.trackEnvelopeCount += trackEnvelopeCount;
-      report.automation.clipEnvelopeCount += clipEnvelopeCount;
-      if (track.hasAutomation) report.automation.tracksWithAutomation += 1;
-
-      collectRouting(report, track);
-    });
-
-    report.media.references = report.clips.audio
-      .filter((clip) => clip.sample)
-      .map((clip) => ({
-        ...clip.sample,
-        clipId: clip.id,
-        clipName: clip.name,
-        trackId: clip.trackId,
-        trackName: clip.trackName,
-      }));
-    report.media.uniqueFiles = groupMediaReferences(report.media.references);
-
-    report.session.arrangementLengthBeats = calculateArrangementLength({
-      clips: [...report.clips.audio, ...report.clips.midi],
-      locators: report.session.locators,
-      loop: report.session.loop,
-    });
-    if (Number.isFinite(report.session.tempo) && report.session.tempo > 0) {
-      report.session.arrangementLengthSeconds = report.session.arrangementLengthBeats * 60 / report.session.tempo;
-    }
-
-    report.stats = calculateStats(report);
-    report.warnings = buildWarnings(report);
-    return report;
-  }
-
-  function parseTempo(liveSet) {
-    const tempoNodes = allByTag(liveSet, "Tempo");
-    for (const tempoNode of tempoNodes) {
-      const manual = directChild(tempoNode, "Manual") || firstByTag(tempoNode, "Manual");
-      const value = numberValue(manual);
-      if (Number.isFinite(value) && value > 0 && value < 1000) return value;
-    }
-    const manualTempo = firstByTag(liveSet, "TempoAutomationTarget");
-    return numberValue(manualTempo, null);
-  }
-
-  function parseTimeSignature(liveSet) {
-    const signatures = allByTag(liveSet, "RemoteableTimeSignature");
-    for (const signature of signatures) {
-      const numerator = numberValue(directChild(signature, "Numerator") || firstByTag(signature, "Numerator"));
-      const denominator = numberValue(directChild(signature, "Denominator") || firstByTag(signature, "Denominator"));
-      if (Number.isFinite(numerator) && Number.isFinite(denominator) && denominator > 0) {
-        return `${numerator}/${denominator}`;
-      }
-    }
-    const numerator = numberValue(firstByTag(liveSet, "Numerator"));
-    const denominator = numberValue(firstByTag(liveSet, "Denominator"));
-    return Number.isFinite(numerator) && Number.isFinite(denominator) ? `${numerator}/${denominator}` : null;
-  }
-
-  function parseScenes(liveSet) {
-    const scenesContainer = directChild(liveSet, "Scenes");
-    if (!scenesContainer) return [];
-    return directChildren(scenesContainer, "Scene").map((node, index) => ({
-      index: index + 1,
-      id: node.getAttribute("Id") || String(index),
-      name: readName(node, `Scene ${index + 1}`),
-      color: readColourIndex(node),
-      tempo: numberValue(firstByTag(node, "Tempo"), null),
-    }));
-  }
-
-  function parseLocators(liveSet) {
-    return allByTag(liveSet, "Locator").map((node, index) => ({
-      id: node.getAttribute("Id") || String(index),
-      name: readName(node, `Locator ${index + 1}`),
-      time: numberValue(directChild(node, "Time") || firstByTag(node, "Time"), null),
-    }));
-  }
-
-  function parseArrangementLoop(liveSet) {
-    const loopOn = firstByTag(liveSet, "LoopOn");
-    const loopStart = firstByTag(liveSet, "LoopStart");
-    const loopLength = firstByTag(liveSet, "LoopLength");
-    const start = numberValue(loopStart, null);
-    const length = numberValue(loopLength, null);
-    return {
-      enabled: booleanValue(loopOn, false),
-      start,
-      length,
-      end: Number.isFinite(start) && Number.isFinite(length) ? start + length : null,
-    };
-  }
-
-  function collectTrackNodes(liveSet) {
-    const nodes = [];
-    const seen = new Set();
-    const add = (node) => {
-      if (!node || seen.has(node)) return;
-      if (!TRACK_TAGS.has(node.tagName)) return;
-      seen.add(node);
-      nodes.push(node);
-    };
-
-    const tracksContainer = directChild(liveSet, "Tracks");
-    if (tracksContainer) directChildren(tracksContainer).forEach(add);
-
-    const returnsContainer = directChild(liveSet, "ReturnTracks");
-    if (returnsContainer) directChildren(returnsContainer).forEach(add);
-
-    add(directChild(liveSet, "MasterTrack"));
-    add(directChild(liveSet, "PreHearTrack"));
-
-    if (!nodes.length) {
-      allByTag(liveSet, "AudioTrack").forEach(add);
-      allByTag(liveSet, "MidiTrack").forEach(add);
-      allByTag(liveSet, "GroupTrack").forEach(add);
-      allByTag(liveSet, "ReturnTrack").forEach(add);
-      allByTag(liveSet, "MasterTrack").forEach(add);
-    }
-    return nodes;
-  }
-
-  function parseTrack(node, index) {
-    const type = trackTypeFromTag(node.tagName);
-    const mixer = firstByTag(node, "Mixer");
-    const onNode = mixer ? directChild(mixer, "On") : null;
-    const isOn = booleanValue(onNode ? directChild(onNode, "Manual") || firstByTag(onNode, "Manual") : null, true);
-    const parentGroup = directChild(node, "TrackGroupId") || firstDirectDescendant(node, "TrackGroupId");
-    const rawParentId = valueOf(parentGroup, null);
-    const parentGroupId = rawParentId == null || String(rawParentId) === "-1" ? null : rawParentId;
-
-    return {
-      id: node.getAttribute("Id") || `${type}-${index}`,
-      index,
-      displayIndex: "",
-      name: readName(node, `${titleCase(type)} Track ${index + 1}`),
-      type,
-      rawType: node.tagName,
-      color: readColourIndex(node),
-      parentGroupId,
-      parentGroupName: null,
-      muted: !isOn,
-      solo: readMixerBoolean(mixer, "Solo", false),
-      armed: readMixerBoolean(mixer, "Arm", false),
-      frozen: readTrackFrozen(node),
-      volume: readMixerNumber(mixer, "Volume"),
-      pan: readMixerNumber(mixer, "Pan"),
-      trackDelay: numberValue(firstByTag(node, "TrackDelay"), null),
-      monitoring: readMonitoring(node),
-      inputRouting: readRouting(node, ["AudioInputRouting", "MidiInputRouting"]),
-      outputRouting: readRouting(node, ["AudioOutputRouting", "MidiOutputRouting"]),
-      deviceIds: [],
-      audioClipIds: [],
-      midiClipIds: [],
-      deviceCount: 0,
-      audioClipCount: 0,
-      midiClipCount: 0,
-      automationEnvelopeCount: 0,
-      clipEnvelopeCount: 0,
-      hasAutomation: false,
-    };
-  }
-
-  function readTrackFrozen(node) {
-    const candidates = ["Freeze", "IsFrozen", "Frozen"];
-    for (const tag of candidates) {
-      const found = directChild(node, tag) || firstDirectDescendant(node, tag);
-      if (found) {
-        const manual = directChild(found, "Manual");
-        return booleanValue(manual || found, false);
-      }
-    }
-    return false;
-  }
-
-  function readMixerBoolean(mixer, tag, fallback) {
-    if (!mixer) return fallback;
-    const container = directChild(mixer, tag) || firstDirectDescendant(mixer, tag);
-    if (!container) return fallback;
-    return booleanValue(directChild(container, "Manual") || container, fallback);
-  }
-
-  function readMixerNumber(mixer, tag) {
-    if (!mixer) return null;
-    const container = directChild(mixer, tag) || firstDirectDescendant(mixer, tag);
-    if (!container) return null;
-    return numberValue(directChild(container, "Manual") || container, null);
-  }
-
-  function readMonitoring(node) {
-    const monitor = firstByTag(node, "MonitoringEnum");
-    const value = valueOf(monitor, null);
-    const map = { 0: "In", 1: "Auto", 2: "Off" };
-    return value == null ? null : (map[value] || String(value));
-  }
-
-  function readRouting(node, tagNames) {
-    for (const tag of tagNames) {
-      const routing = firstByTag(node, tag);
-      if (!routing) continue;
-      const displayParts = [
-        firstValueByTag(routing, "UpperDisplayString"),
-        firstValueByTag(routing, "LowerDisplayString"),
-      ].filter(Boolean);
-      if (displayParts.length) return displayParts.join(" — ");
-      const target = firstValueByTag(routing, "Target");
-      if (target) return target;
-      const external = firstValueByTag(routing, "ExternalOnly");
-      if (external) return external;
-    }
-    return null;
-  }
-
-  function parseDevices(trackNode, track) {
-    const devices = [];
-    const seen = new Set();
-    const containers = allByTag(trackNode, "Devices");
-    let position = 0;
-
-    containers.forEach((container) => {
-      directChildren(container).forEach((node) => {
-        if (seen.has(node)) return;
-        seen.add(node);
-        position += 1;
-        devices.push(parseDevice(node, track, position, trackNode));
-      });
-    });
-    return devices;
-  }
-
-  function parseDevice(node, track, position, trackNode) {
-    const rawClass = node.tagName;
-    const vst3Info = firstByTag(node, "Vst3PluginInfo");
-    const vst2Info = firstByTag(node, "VstPluginInfo");
-    const auInfo = firstByTag(node, "AuPluginInfo");
-    const pluginInfo = vst3Info || vst2Info || auInfo;
-    const isPlugin = rawClass === "PluginDevice" || Boolean(pluginInfo);
-    const isMax = rawClass.startsWith("MxDevice") || rawClass.toLowerCase().includes("maxforlive");
-    const isRack = RACK_TAGS.has(rawClass);
-
-    let format = "Ableton";
-    if (vst3Info) format = "VST3";
-    else if (vst2Info) format = "VST2";
-    else if (auInfo) format = "Audio Unit";
-    else if (isMax) format = "Max for Live";
-    else if (isRack) format = "Rack";
-
-    let name;
-    if (pluginInfo) {
-      name = firstValueByTag(pluginInfo, "PlugName") || firstValueByTag(pluginInfo, "Name");
-    }
-    if (!name && isMax) name = readMaxDeviceName(node);
-    const customName = valueOf(directChild(node, "UserName"), "");
-    if (!name && customName) name = customName;
-    if (!name) name = FRIENDLY_DEVICE_NAMES[rawClass] || splitCamelCase(rawClass);
-
-    const manufacturer = pluginInfo
-      ? firstValueByTag(pluginInfo, "Manufacturer") || parseBrowserContentPath(node).manufacturer
-      : null;
-    const path = pluginInfo
-      ? firstValueByTag(pluginInfo, "Path")
-      : isMax ? readMaxDevicePath(node) : null;
-
-    const on = directChild(node, "On");
-    const enabled = booleanValue(on ? directChild(on, "Manual") || firstByTag(on, "Manual") : null, true);
-    const parentRack = findParentDevice(node, trackNode);
-    const branchName = findBranchName(node);
-
-    return {
-      id: `${track.id}-device-${position}-${node.getAttribute("Id") || position}`,
-      internalId: node.getAttribute("Id") || null,
-      name,
-      customName: customName || null,
-      rawClass,
-      format,
-      category: classifyDevice(rawClass, pluginInfo, isRack, isMax),
-      manufacturer: manufacturer || null,
-      path: path || null,
-      trackId: track.id,
-      trackName: track.name,
-      position,
-      enabled,
-      parentRackClass: parentRack?.tagName || null,
-      parentRackName: parentRack ? FRIENDLY_DEVICE_NAMES[parentRack.tagName] || splitCamelCase(parentRack.tagName) : null,
-      branchName,
-      browserPath: firstValueByTag(node, "BrowserContentPath") || null,
-    };
-  }
-
-  function readMaxDeviceName(node) {
-    const userName = valueOf(directChild(node, "UserName"), "");
-    if (userName) return userName;
-    const fileRefs = allByTag(node, "FileRef");
-    for (const ref of fileRefs) {
-      const name = firstValueByTag(ref, "Name");
-      const path = firstValueByTag(ref, "Path");
-      if (name && name.toLowerCase().endsWith(".amxd")) return stripExtension(name);
-      if (path && path.toLowerCase().includes(".amxd")) return stripExtension(path.split(/[\\/]/).pop());
-    }
-    return firstValueByTag(node, "OriginalFileName") || FRIENDLY_DEVICE_NAMES[node.tagName] || splitCamelCase(node.tagName);
-  }
-
-  function readMaxDevicePath(node) {
-    const fileRefs = allByTag(node, "FileRef");
-    for (const ref of fileRefs) {
-      const path = firstValueByTag(ref, "Path");
-      const name = firstValueByTag(ref, "Name");
-      if ((path && path.toLowerCase().includes(".amxd")) || (name && name.toLowerCase().endsWith(".amxd"))) {
-        return path || name;
-      }
-    }
-    return null;
-  }
-
-  function parseBrowserContentPath(node) {
-    const value = firstValueByTag(node, "BrowserContentPath") || "";
-    const decoded = safeDecodeURIComponent(value);
-    const parts = decoded.split(":");
-    return {
-      manufacturer: parts.length >= 3 ? parts[parts.length - 2] : null,
-      name: parts.length ? parts[parts.length - 1] : null,
-    };
-  }
-
-  function classifyDevice(rawClass, pluginInfo, isRack, isMax) {
-    if (isRack) return "rack";
-    if (isMax) {
-      if (rawClass.toLowerCase().includes("instrument")) return "instrument";
-      if (rawClass.toLowerCase().includes("midi")) return "midi-effect";
-      return "audio-effect";
-    }
-    if (pluginInfo) {
-      const type = Number(firstValueByTag(pluginInfo, "DeviceType"));
-      if (type === 1) return "instrument";
-      if (type === 2) return "audio-effect";
-      return "plugin";
-    }
-    const lower = rawClass.toLowerCase();
-    if (/(instrument|analog|operator|sampler|simpler|collision|electric|tension|wavetable|meld|granulator)/.test(lower)) return "instrument";
-    if (/(midi|arpeggiator|chord|pitcher|velocity|notelength)/.test(lower)) return "midi-effect";
-    return "audio-effect";
-  }
-
-  function findParentDevice(node, trackNode) {
-    let current = node.parentElement;
-    while (current && current !== trackNode) {
-      if (current.parentElement?.tagName === "Devices") return current;
-      current = current.parentElement;
-    }
-    return null;
-  }
-
-  function findBranchName(node) {
-    let current = node.parentElement;
-    while (current) {
-      if (current.tagName.endsWith("Branch")) return readName(current, current.tagName.replace("Branch", " Chain"));
-      if (TRACK_TAGS.has(current.tagName)) break;
-      current = current.parentElement;
-    }
-    return null;
-  }
-
-  function parseClips(trackNode, track, kind) {
-    const tag = kind === "audio" ? "AudioClip" : "MidiClip";
-    return uniqueElements(allByTag(trackNode, tag)).map((node, index) => {
-      const start = readClipStart(node);
-      const end = readClipEnd(node, start);
-      const clip = {
-        id: `${track.id}-${kind}-clip-${index}-${node.getAttribute("Id") || index}`,
-        internalId: node.getAttribute("Id") || null,
-        kind,
-        name: readClipName(node, `${titleCase(kind)} Clip ${index + 1}`),
-        trackId: track.id,
-        trackName: track.name,
-        context: classifyClipContext(node, trackNode),
-        start,
-        end,
-        duration: Number.isFinite(start) && Number.isFinite(end) ? Math.max(0, end - start) : null,
-        loopOn: booleanValue(firstByTag(node, "LoopOn"), false),
-        loopStart: numberValue(firstByTag(node, "LoopStart"), null),
-        loopEnd: numberValue(firstByTag(node, "LoopEnd"), null),
-        color: readColourIndex(node),
-        envelopeCount: allByTag(node, "ClipEnvelope").length,
-      };
-
-      if (kind === "audio") {
-        clip.warped = booleanValue(firstByTag(node, "IsWarped"), false);
-        const warpModeRaw = valueOf(firstByTag(node, "WarpMode"), null);
-        clip.warpMode = warpModeRaw == null ? null : (WARP_MODES[warpModeRaw] || String(warpModeRaw));
-        clip.gain = numberValue(firstByTag(node, "SampleVolume"), null);
-        clip.transpose = numberValue(firstByTag(node, "PitchCoarse"), null);
-        clip.detune = numberValue(firstByTag(node, "PitchFine"), null);
-        clip.warpMarkerCount = allByTag(node, "WarpMarker").length;
-        clip.sample = parseSampleReference(node);
-      } else {
-        const notes = parseMidiNotes(node);
-        clip.noteCount = notes.length;
-        clip.lowestNote = notes.length ? Math.min(...notes.map((note) => note.pitch).filter(Number.isFinite)) : null;
-        clip.highestNote = notes.length ? Math.max(...notes.map((note) => note.pitch).filter(Number.isFinite)) : null;
-        clip.notesWithProbability = notes.filter((note) => Number.isFinite(note.probability) && note.probability < 1).length;
-      }
-      return clip;
-    });
-  }
-
-  function readClipName(node, fallback) {
-    const directName = directChild(node, "Name");
-    if (directName) {
-      const directValue = valueOf(directName, "");
-      if (directValue) return directValue;
-      const effective = firstValueByTag(directName, "EffectiveName");
-      const user = firstValueByTag(directName, "UserName");
-      if (user || effective) return user || effective;
-    }
-    return fallback;
-  }
-
-  function readClipStart(node) {
-    const current = numberValue(directChild(node, "CurrentStart") || firstByTag(node, "CurrentStart"), null);
-    if (Number.isFinite(current)) return current;
-    const timeAttr = Number(node.getAttribute("Time"));
-    return Number.isFinite(timeAttr) ? timeAttr : null;
-  }
-
-  function readClipEnd(node, start) {
-    const current = numberValue(directChild(node, "CurrentEnd") || firstByTag(node, "CurrentEnd"), null);
-    if (Number.isFinite(current)) return current;
-    const loopEnd = numberValue(firstByTag(node, "LoopEnd"), null);
-    if (Number.isFinite(loopEnd)) return Number.isFinite(start) ? start + Math.max(0, loopEnd) : loopEnd;
-    return start;
-  }
-
-  function parseMidiNotes(clipNode) {
-    const nodes = uniqueElements([
-      ...allByTag(clipNode, "MidiNoteEvent"),
-      ...allByTag(clipNode, "NoteEvent"),
-    ]);
-    return nodes.map((node) => {
-      let pitch = Number(node.getAttribute("Pitch"));
-      if (!Number.isFinite(pitch)) {
-        let current = node.parentElement;
-        while (current && current !== clipNode) {
-          if (current.tagName === "KeyTrack") {
-            pitch = Number(current.getAttribute("Id"));
-            break;
-          }
-          current = current.parentElement;
-        }
-      }
-      return {
-        pitch: Number.isFinite(pitch) ? pitch : null,
-        time: attributeNumber(node, "Time"),
-        duration: attributeNumber(node, "Duration"),
-        velocity: attributeNumber(node, "Velocity"),
-        probability: attributeNumber(node, "Probability"),
-      };
-    });
-  }
-
-  function parseSampleReference(clipNode) {
-    const sampleRef = firstByTag(clipNode, "SampleRef");
-    if (!sampleRef) return null;
-    const fileRef = firstByTag(sampleRef, "FileRef");
-    if (!fileRef) return null;
-
-    const name = firstValueByTag(fileRef, "Name");
-    const absolutePath = firstValueByTag(fileRef, "Path");
-    const relativePathNode = firstByTag(fileRef, "RelativePath");
-    let relativePath = valueOf(relativePathNode, "");
-    if (!relativePath) {
-      relativePath = allByTag(relativePathNode || fileRef, "RelativePathElement")
-        .map((node) => node.getAttribute("Dir"))
-        .filter(Boolean)
-        .join("/");
-      if (relativePath && name && !relativePath.endsWith(name)) relativePath += `/${name}`;
-    }
-    const hasRelative = booleanValue(firstByTag(fileRef, "HasRelativePath"), Boolean(relativePath));
-    const effectivePath = relativePath || absolutePath || name || "Unknown file";
-
-    return {
-      name: name || (effectivePath.split(/[\\/]/).pop() || "Unknown file"),
-      absolutePath: absolutePath || null,
-      relativePath: relativePath || null,
-      hasRelativePath: hasRelative,
-      effectivePath,
-      originalSize: numberValue(firstByTag(fileRef, "OriginalFileSize"), null),
-      originalCrc: valueOf(firstByTag(fileRef, "OriginalCrc"), null),
-      sampleRate: numberValue(firstByTag(sampleRef, "SampleRate"), null),
-      referenceType: hasRelative ? "Relative reference" : absolutePath ? "Absolute-only reference" : "Unresolved reference",
-    };
-  }
-
-  function groupMediaReferences(references) {
-    const map = new Map();
-    references.forEach((ref) => {
-      const key = (ref.relativePath || ref.absolutePath || ref.name || "unknown").toLowerCase();
-      if (!map.has(key)) {
-        map.set(key, {
-          key,
-          name: ref.name,
-          absolutePath: ref.absolutePath,
-          relativePath: ref.relativePath,
-          effectivePath: ref.effectivePath,
-          hasRelativePath: ref.hasRelativePath,
-          referenceType: ref.referenceType,
-          originalSize: ref.originalSize,
-          sampleRate: ref.sampleRate,
-          occurrences: [],
-        });
-      }
-      map.get(key).occurrences.push({
-        clipName: ref.clipName,
-        trackName: ref.trackName,
-        clipId: ref.clipId,
-      });
-    });
-    return [...map.values()].sort((a, b) => a.name.localeCompare(b.name));
-  }
-
-  function collectRouting(report, track) {
-    const input = track.inputRouting || "";
-    const output = track.outputRouting || "";
-    if (isExternalRouting(input)) report.routing.externalInputs.push({ trackId: track.id, trackName: track.name, routing: input });
-    if (isExternalRouting(output)) report.routing.externalOutputs.push({ trackId: track.id, trackName: track.name, routing: output });
-  }
-
-  function isExternalRouting(value) {
-    return /\bext(?:ernal)?\b|hardware|audio to|midi to/i.test(value || "");
-  }
-
-  function calculateStats(report) {
-    const regularTracks = report.tracks.filter((track) => ["audio", "midi", "group"].includes(track.type));
-    const returns = report.tracks.filter((track) => track.type === "return");
-    const groups = report.tracks.filter((track) => track.type === "group");
-    const plugins = report.devices.filter((device) => ["VST2", "VST3", "Audio Unit"].includes(device.format));
-    const maxDevices = report.devices.filter((device) => device.format === "Max for Live");
-    const racks = report.devices.filter((device) => device.format === "Rack");
-    return {
-      trackCount: regularTracks.length,
-      returnCount: returns.length,
-      groupCount: groups.length,
-      deviceCount: report.devices.length,
-      pluginCount: plugins.length,
-      uniquePluginCount: groupDevices(plugins).length,
-      maxDeviceCount: maxDevices.length,
-      rackCount: racks.length,
-      audioClipCount: report.clips.audio.length,
-      midiClipCount: report.clips.midi.length,
-      uniqueMediaCount: report.media.uniqueFiles.length,
-      absoluteOnlyMediaCount: report.media.uniqueFiles.filter((file) => !file.hasRelativePath && file.absolutePath).length,
-      frozenTrackCount: report.tracks.filter((track) => track.frozen).length,
-      mutedTrackCount: report.tracks.filter((track) => track.muted).length,
-    };
-  }
-
-  function buildWarnings(report) {
-    const warnings = [];
-    const auDevices = report.devices.filter((device) => device.format === "Audio Unit");
-    const absoluteMedia = report.media.uniqueFiles.filter((file) => !file.hasRelativePath && file.absolutePath);
-    const maxAbsolute = report.devices.filter((device) => device.format === "Max for Live" && isAbsolutePath(device.path));
-    const externalRouteCount = report.routing.externalInputs.length + report.routing.externalOutputs.length;
-    const frozenTracks = report.tracks.filter((track) => track.frozen);
-    const disabledDevices = report.devices.filter((device) => !device.enabled);
-
-    if (absoluteMedia.length) {
-      warnings.push({
-        level: "warning",
-        title: `${plural(absoluteMedia.length, "audio file uses", "audio files use")} an absolute-only reference`,
-        detail: "The Set does not contain a usable relative path for these references. This does not prove the files are missing on this computer.",
-      });
-    }
-    if (auDevices.length) {
-      warnings.push({
-        level: "notice",
-        title: `${plural(auDevices.length, "Audio Unit plug-in", "Audio Unit plug-ins")} detected`,
-        detail: "Audio Units are macOS-specific and may require an equivalent VST format when transferring the Set to Windows.",
-      });
-    }
-    if (maxAbsolute.length) {
-      warnings.push({
-        level: "warning",
-        title: `${plural(maxAbsolute.length, "Max for Live device has", "Max for Live devices have")} an absolute path`,
-        detail: "The device path may not resolve on another computer unless the device is also available in that user’s library.",
-      });
-    }
-    if (externalRouteCount) {
-      warnings.push({
-        level: "notice",
-        title: `${plural(externalRouteCount, "external routing assignment", "external routing assignments")} detected`,
-        detail: "External hardware input and output availability cannot be verified from a web browser.",
-      });
-    }
-    if (frozenTracks.length) {
-      warnings.push({
-        level: "info",
-        title: `${plural(frozenTracks.length, "track is", "tracks are")} frozen`,
-        detail: "Frozen tracks may make project transfer safer when the receiving system lacks a device or plug-in.",
-      });
-    }
-    if (disabledDevices.length) {
-      warnings.push({
-        level: "info",
-        title: `${plural(disabledDevices.length, "device is", "devices are")} disabled`,
-        detail: "Disabled devices are still included in the required-device inventory because their saved state remains part of the Set.",
-      });
-    }
-    if (!report.tracks.length) {
-      warnings.push({ level: "error", title: "No tracks were recognised", detail: "The file may use an unsupported or unusual XML structure." });
-    }
-    if (!warnings.length) {
-      warnings.push({ level: "info", title: "No obvious compatibility notices found", detail: "This is a structural scan, not a guarantee that the project will open or sound correctly." });
-    }
-    return warnings;
-  }
-
   function showProcessing(title, detail, progress) {
     hideAllPrimarySections();
     els.processingSection.hidden = false;
@@ -1051,6 +243,7 @@
     state.currentFile = null;
     state.search = "";
     state.showNativeDevices = false;
+    state.collapsedSections.clear();
     els.errorDetails.textContent = "";
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -1071,20 +264,22 @@
       [String(report.stats.pluginCount), "Plug-ins"],
       [formatDuration(report.session.arrangementLengthSeconds), "Arrangement"],
     ];
-    els.summaryGrid.innerHTML = summaryItems.map(([value, label]) => `
+    els.summaryGrid.innerHTML = summaryItems
+      .map(
+        ([value, label]) => `
       <div class="summary-card">
         <div class="value">${escapeHtml(value)}</div>
         <div class="label">${escapeHtml(label)}</div>
       </div>
-    `).join("");
+    `,
+      )
+      .join("");
 
     const sections = [
       renderWarningsSection(report),
       renderDevicesSection(report),
       renderTracksSection(report),
-      renderClipsSection(report),
       renderMediaSection(report),
-      renderRoutingSection(report),
       renderTechnicalSection(report),
     ];
     els.reportContent.innerHTML = sections.join("");
@@ -1094,25 +289,36 @@
   }
 
   function renderWarningsSection(report) {
-    return sectionTemplate("warnings", "Warnings & notices", report.warnings.length, `
+    return sectionTemplate(
+      "warnings",
+      "Warnings & notices",
+      report.warnings.length,
+      `
       <div class="warning-list">
-        ${report.warnings.map((warning) => `
+        ${report.warnings
+          .map(
+            (warning) => `
           <div class="warning-row ${escapeHtml(warning.level)}" data-searchable="${escapeAttr(`${warning.title} ${warning.detail}`)}">
             <div class="warning-level">${escapeHtml(warning.level.toUpperCase())}</div>
             <div><strong>${escapeHtml(warning.title)}</strong><p>${escapeHtml(warning.detail)}</p></div>
           </div>
-        `).join("")}
+        `,
+          )
+          .join("")}
       </div>
-    `);
+    `,
+    );
   }
 
   function renderDevicesSection(report) {
     const allGroups = groupDevices(report.devices);
     if (!allGroups.length) return sectionTemplate("devices", "Required devices", 0, emptyState("No devices were found."));
-    const groups = state.showNativeDevices
-      ? allGroups
-      : allGroups.filter((group) => !group.items.every(isAbletonNativeDevice));
-    return sectionTemplate("devices", "Required devices", report.devices.length, `
+    const groups = state.showNativeDevices ? allGroups : allGroups.filter((group) => !group.items.every(isAbletonNativeDevice));
+    return sectionTemplate(
+      "devices",
+      "Required devices",
+      report.devices.length,
+      `
       <div class="section-controls">
         <label class="toggle-control">
           <input id="nativeDevicesToggle" type="checkbox"${state.showNativeDevices ? " checked" : ""}>
@@ -1120,12 +326,15 @@
           Ableton native devices
         </label>
       </div>
-      ${groups.length ? `
+      ${
+        groups.length
+          ? `
       <div class="compact-list">
-        ${groups.map((group) => {
-          const formats = [...new Set(group.items.map((item) => item.format))];
-          const tracks = [...new Set(group.items.map((item) => item.trackName))];
-          return `
+        ${groups
+          .map((group) => {
+            const formats = [...new Set(group.items.map((item) => item.format))];
+            const tracks = [...new Set(group.items.map((item) => item.trackName))];
+            return `
             <div class="compact-row" data-searchable="${escapeAttr(`${group.name} ${formats.join(" ")} ${tracks.join(" ")}`)}">
               <div class="compact-main">
                 <strong>${escapeHtml(group.name)}</strong>
@@ -1136,10 +345,14 @@
               <div class="compact-count">×${group.items.length}</div>
             </div>
           `;
-        }).join("")}
+          })
+          .join("")}
       </div>
-      ` : emptyState("No third-party, Max for Live or other required devices were found. Enable Ableton native devices to include them.")}
-    `);
+      `
+          : emptyState("No third-party, Max for Live or other required devices were found. Enable Ableton native devices to include them.")
+      }
+    `,
+    );
   }
 
   function isAbletonNativeDevice(device) {
@@ -1149,18 +362,22 @@
   function renderTracksSection(report) {
     if (!report.tracks.length) return sectionTemplate("tracks", "Tracks", 0, emptyState("No recognised tracks were found."));
     const trackMap = new Map(report.tracks.map((track) => [String(track.id), track]));
-    return sectionTemplate("tracks", "Tracks", report.tracks.length, `
+    return sectionTemplate(
+      "tracks",
+      "Tracks",
+      report.tracks.length,
+      `
       <div class="track-list">
-        ${report.tracks.map((track) => {
-          const depth = calculateTrackDepth(track, trackMap);
-          const devices = report.devices.filter((device) => device.trackId === track.id);
-          const searchText = `${track.name} ${track.type} ${track.inputRouting || ""} ${track.outputRouting || ""} ${devices.map((device) => device.name).join(" ")}`;
-          return `
-            <div class="track-row" style="--track-color:${escapeAttr(trackColour(track.color))}" data-searchable="${escapeAttr(searchText)}">
+        ${report.tracks
+          .map((track) => {
+            const depth = calculateTrackDepth(track, trackMap);
+            const devices = report.devices.filter((device) => device.trackId === track.id);
+            const searchText = `${track.name} ${track.type} ${track.inputRouting || ""} ${track.outputRouting || ""} ${devices.map((device) => device.name).join(" ")}`;
+            return `
+            <div class="track-row" data-searchable="${escapeAttr(searchText)}">
               <button class="track-summary" type="button" aria-expanded="false">
                 <span class="track-number">${escapeHtml(track.displayIndex)}</span>
                 <span class="track-name" style="padding-left:${Math.min(depth, 5) * 18}px">
-                  <span class="track-color"></span>
                   <span>${escapeHtml(track.name)}</span>
                 </span>
                 <span class="track-type">${escapeHtml(titleCase(track.type))}</span>
@@ -1179,58 +396,46 @@
                   ${trackMeta("State", trackStateText(track))}
                 </div>
                 <ul class="inline-list">
-                  ${devices.length ? devices.map((device) => `
+                  ${
+                    devices.length
+                      ? devices
+                          .map(
+                            (device) => `
                     <li>
                       <span>${escapeHtml(device.name)}${device.branchName ? `<small> — ${escapeHtml(device.branchName)}</small>` : ""}</span>
                       <small>${escapeHtml(device.format)}${device.enabled ? "" : " • disabled"}</small>
                     </li>
-                  `).join("") : `<li><span>No devices</span><small>Empty chain</small></li>`}
+                  `,
+                          )
+                          .join("")
+                      : `<li><span>No devices</span><small>Empty chain</small></li>`
+                  }
                 </ul>
               </div>
             </div>
           `;
-        }).join("")}
+          })
+          .join("")}
       </div>
-    `);
-  }
-
-  function renderClipsSection(report) {
-    const clips = [...report.clips.audio, ...report.clips.midi].sort((a, b) => (a.start ?? 0) - (b.start ?? 0));
-    if (!clips.length) return sectionTemplate("clips", "Clips", 0, emptyState("No audio or MIDI clips were found."));
-    return sectionTemplate("clips", "Clips", clips.length, `
-      <div class="data-table-wrap">
-        <table class="data-table">
-          <thead><tr><th>Clip</th><th>Track</th><th>Type</th><th>Location</th><th>Start</th><th>Length</th><th>Detail</th></tr></thead>
-          <tbody>
-            ${clips.map((clip) => `
-              <tr data-searchable="${escapeAttr(`${clip.name} ${clip.trackName} ${clip.kind} ${clip.context}`)}">
-                <td><span class="table-primary">${escapeHtml(clip.name)}</span></td>
-                <td>${escapeHtml(clip.trackName)}</td>
-                <td><span class="badge">${escapeHtml(titleCase(clip.kind))}</span></td>
-                <td>${escapeHtml(clip.context)}</td>
-                <td class="mono">${formatBeat(clip.start)}</td>
-                <td class="mono">${formatBeat(clip.duration)}</td>
-                <td class="muted">${clip.kind === "audio"
-                  ? `${clip.warped ? `Warped${clip.warpMode ? ` • ${escapeHtml(clip.warpMode)}` : ""}` : "Unwarped"}${clip.sample ? ` • ${escapeHtml(clip.sample.name)}` : ""}`
-                  : `${clip.noteCount} notes${Number.isFinite(clip.lowestNote) ? ` • ${midiNoteName(clip.lowestNote)}–${midiNoteName(clip.highestNote)}` : ""}`
-                }</td>
-              </tr>
-            `).join("")}
-          </tbody>
-        </table>
-      </div>
-    `);
+    `,
+    );
   }
 
   function renderMediaSection(report) {
     const files = report.media.uniqueFiles;
     if (!files.length) return sectionTemplate("media", "Media references", 0, emptyState("No referenced audio files were found."));
-    return sectionTemplate("media", "Media references", files.length, `
+    return sectionTemplate(
+      "media",
+      "Media references",
+      files.length,
+      `
       <div class="data-table-wrap">
         <table class="data-table">
           <thead><tr><th>File</th><th>Reference</th><th>Used by</th><th>Original size</th><th>Path</th></tr></thead>
           <tbody>
-            ${files.map((file) => `
+            ${files
+              .map(
+                (file) => `
               <tr data-searchable="${escapeAttr(`${file.name} ${file.effectivePath} ${file.occurrences.map((item) => item.trackName).join(" ")}`)}">
                 <td><span class="table-primary">${escapeHtml(file.name)}</span></td>
                 <td><span class="badge ${!file.hasRelativePath && file.absolutePath ? "warning" : ""}">${escapeHtml(file.referenceType)}</span></td>
@@ -1238,33 +443,14 @@
                 <td class="mono">${file.originalSize ? formatBytes(file.originalSize) : "—"}</td>
                 <td class="path-cell mono">${escapeHtml(file.relativePath || file.absolutePath || file.name)}</td>
               </tr>
-            `).join("")}
+            `,
+              )
+              .join("")}
           </tbody>
         </table>
       </div>
-    `);
-  }
-
-  function renderRoutingSection(report) {
-    const rows = [
-      ...report.routing.externalInputs.map((item) => ({ ...item, direction: "Input" })),
-      ...report.routing.externalOutputs.map((item) => ({ ...item, direction: "Output" })),
-    ];
-    if (!rows.length) return sectionTemplate("routing", "External routing", 0, emptyState("No obvious external hardware routing was detected."));
-    return sectionTemplate("routing", "External routing", rows.length, `
-      <div class="data-table-wrap">
-        <table class="data-table">
-          <thead><tr><th>Track</th><th>Direction</th><th>Routing</th></tr></thead>
-          <tbody>${rows.map((row) => `
-            <tr data-searchable="${escapeAttr(`${row.trackName} ${row.direction} ${row.routing}`)}">
-              <td class="table-primary">${escapeHtml(row.trackName)}</td>
-              <td><span class="badge">${escapeHtml(row.direction)}</span></td>
-              <td class="mono">${escapeHtml(row.routing)}</td>
-            </tr>
-          `).join("")}</tbody>
-        </table>
-      </div>
-    `);
+    `,
+    );
   }
 
   function renderTechnicalSection(report) {
@@ -1284,20 +470,33 @@
       ["Parser", "Browser DOMParser + gzip stream"],
       ["Data handling", "Local browser memory only"],
     ];
-    return sectionTemplate("technical", "Technical details", items.length, `
+    return sectionTemplate(
+      "technical",
+      "Technical details",
+      items.length,
+      `
       <div class="key-value-list">
-        ${items.map(([key, value]) => `
+        ${items
+          .map(
+            ([key, value]) => `
           <div class="key-value" data-searchable="${escapeAttr(`${key} ${value}`)}"><span>${escapeHtml(key)}</span><strong>${escapeHtml(value)}</strong></div>
-        `).join("")}
+        `,
+          )
+          .join("")}
       </div>
-    `);
+    `,
+    );
   }
 
   function sectionTemplate(id, title, count, body) {
+    const collapsed = state.collapsedSections.has(id);
     return `
-      <section class="report-section" id="section-${escapeAttr(id)}" data-section-title="${escapeAttr(title)}">
-        <div class="section-heading"><h3>${escapeHtml(title)}</h3><span class="count">${count}</span></div>
-        <div class="section-body">${body}</div>
+      <section class="report-section${collapsed ? " collapsed" : ""}" id="section-${escapeAttr(id)}" data-section-id="${escapeAttr(id)}" data-section-title="${escapeAttr(title)}">
+        <button class="section-heading" type="button" aria-expanded="${String(!collapsed)}" aria-controls="section-body-${escapeAttr(id)}">
+          <h3>${escapeHtml(title)}</h3>
+          <span class="section-heading-meta"><span class="count">${count}</span><span class="section-chevron" aria-hidden="true">›</span></span>
+        </button>
+        <div class="section-body" id="section-body-${escapeAttr(id)}">${body}</div>
       </section>
     `;
   }
@@ -1307,6 +506,15 @@
   }
 
   function bindReportInteractions() {
+    document.querySelectorAll(".section-heading").forEach((button) => {
+      button.addEventListener("click", () => {
+        const section = button.closest(".report-section");
+        const collapsed = section.classList.toggle("collapsed");
+        button.setAttribute("aria-expanded", String(!collapsed));
+        if (collapsed) state.collapsedSections.add(section.dataset.sectionId);
+        else state.collapsedSections.delete(section.dataset.sectionId);
+      });
+    });
     const nativeDevicesToggle = document.querySelector("#nativeDevicesToggle");
     nativeDevicesToggle?.addEventListener("change", () => {
       state.showNativeDevices = nativeDevicesToggle.checked;
@@ -1323,9 +531,13 @@
 
   function buildSectionNavigation() {
     const sections = [...els.reportContent.querySelectorAll(".report-section")];
-    els.sectionNav.innerHTML = sections.map((section) => `
+    els.sectionNav.innerHTML = sections
+      .map(
+        (section) => `
       <a href="#${escapeAttr(section.id)}">${escapeHtml(section.dataset.sectionTitle)}</a>
-    `).join("");
+    `,
+      )
+      .join("");
   }
 
   function applySearchFilter() {
@@ -1339,21 +551,6 @@
       const searchable = [...section.querySelectorAll("[data-searchable]")];
       const visibleCount = searchable.filter((item) => !item.classList.contains("filtered-out")).length;
       section.classList.toggle("filtered-out", Boolean(query) && searchable.length > 0 && visibleCount === 0);
-    });
-  }
-
-  function groupDevices(devices) {
-    const map = new Map();
-    devices.forEach((device) => {
-      const key = `${device.name.toLowerCase()}|${device.format.toLowerCase()}`;
-      if (!map.has(key)) {
-        map.set(key, { name: device.name, manufacturer: device.manufacturer, format: device.format, items: [] });
-      }
-      map.get(key).items.push(device);
-    });
-    return [...map.values()].sort((a, b) => {
-      if (b.items.length !== a.items.length) return b.items.length - a.items.length;
-      return a.name.localeCompare(b.name);
     });
   }
 
@@ -1400,8 +597,12 @@
     lines.push("────────────────────────────");
     lines.push("");
     lines.push(report.file.name);
-    lines.push(`${formatLiveVersion(report)} • ${formatNumber(report.session.tempo, "Unknown tempo")} BPM • ${report.session.timeSignature || "Unknown time signature"}`);
-    lines.push(`${report.stats.trackCount} Tracks • ${report.stats.returnCount} Returns • ${report.session.sceneCount} Scenes • ${formatDuration(report.session.arrangementLengthSeconds)}`);
+    lines.push(
+      `${formatLiveVersion(report)} • ${formatNumber(report.session.tempo, "Unknown tempo")} BPM • ${report.session.timeSignature || "Unknown time signature"}`,
+    );
+    lines.push(
+      `${report.stats.trackCount} Tracks • ${report.stats.returnCount} Returns • ${report.session.sceneCount} Scenes • ${formatDuration(report.session.arrangementLengthSeconds)}`,
+    );
     lines.push("");
     lines.push("WARNINGS & NOTICES");
     lines.push("──────────────────");
@@ -1414,7 +615,10 @@
     if (groups.length) {
       groups.forEach((group) => {
         lines.push(`• ${group.name} ×${group.items.length} (${[...new Set(group.items.map((item) => item.format))].join(" / ")})`);
-        if (state.detail) group.items.forEach((item) => lines.push(`  - ${item.trackName}${item.branchName ? ` / ${item.branchName}` : ""}${item.enabled ? "" : " [disabled]"}`));
+        if (state.detail)
+          group.items.forEach((item) =>
+            lines.push(`  - ${item.trackName}${item.branchName ? ` / ${item.branchName}` : ""}${item.enabled ? "" : " [disabled]"}`),
+          );
       });
     } else lines.push("• No devices found");
     lines.push("");
@@ -1422,7 +626,9 @@
     lines.push("──────");
     lines.push("");
     report.tracks.forEach((track) => {
-      lines.push(`${track.displayIndex}  ${track.name} — ${titleCase(track.type)} — ${track.deviceCount} devices — ${track.audioClipCount + track.midiClipCount} clips${track.frozen ? " — Frozen" : ""}${track.muted ? " — Muted" : ""}`);
+      lines.push(
+        `${track.displayIndex}  ${track.name} — ${titleCase(track.type)} — ${track.deviceCount} devices — ${track.audioClipCount + track.midiClipCount} clips${track.frozen ? " — Frozen" : ""}${track.muted ? " — Muted" : ""}`,
+      );
       if (state.detail) {
         const devices = report.devices.filter((device) => device.trackId === track.id);
         devices.forEach((device) => lines.push(`    • ${device.name} (${device.format})${device.enabled ? "" : " [disabled]"}`));
@@ -1434,7 +640,10 @@
     lines.push("");
     lines.push(`${report.media.uniqueFiles.length} unique audio references`);
     lines.push(`${report.stats.absoluteOnlyMediaCount} absolute-only references`);
-    if (state.detail) report.media.uniqueFiles.forEach((file) => lines.push(`• ${file.name} — ${file.referenceType} — ${file.relativePath || file.absolutePath || "No path"}`));
+    if (state.detail)
+      report.media.uniqueFiles.forEach((file) =>
+        lines.push(`• ${file.name} — ${file.referenceType} — ${file.relativePath || file.absolutePath || "No path"}`),
+      );
     lines.push("");
     lines.push(`Generated locally on ${formatDateTime(report.generatedAt)}`);
     return lines.join("\n");
@@ -1462,11 +671,6 @@
     downloadBlob(createTextReport(state.report), `${baseFilename(state.report.file.name)}-report.txt`, "text/plain;charset=utf-8");
   }
 
-  function exportJson() {
-    if (!state.report) return;
-    downloadBlob(JSON.stringify(state.report, null, 2), `${baseFilename(state.report.file.name)}-report.json`, "application/json;charset=utf-8");
-  }
-
   function downloadBlob(content, filename, type) {
     const blob = new Blob([content], { type });
     const url = URL.createObjectURL(blob);
@@ -1486,167 +690,13 @@
     return error;
   }
 
-  function directChildren(node, tagName = null) {
-    if (!node) return [];
-    return [...node.children].filter((child) => !tagName || child.tagName === tagName);
-  }
-
-  function directChild(node, tagName) {
-    return directChildren(node, tagName)[0] || null;
-  }
-
-  function firstDirectDescendant(node, tagName) {
-    if (!node) return null;
-    for (const child of directChildren(node)) {
-      if (child.tagName === tagName) return child;
-      if (["Name", "Mixer", "DeviceChain"].includes(child.tagName)) {
-        const nested = directChild(child, tagName);
-        if (nested) return nested;
-      }
-    }
-    return null;
-  }
-
-  function allByTag(node, tagName) {
-    if (!node) return [];
-    return [...node.getElementsByTagName(tagName)];
-  }
-
-  function firstByTag(node, tagName) {
-    return allByTag(node, tagName)[0] || null;
-  }
-
-  function firstByPath(node, tags) {
-    let current = node;
-    for (const tag of tags) {
-      current = directChild(current, tag) || firstByTag(current, tag);
-      if (!current) return null;
-    }
-    return current;
-  }
-
-  function firstValueByTag(node, tagName) {
-    return valueOf(firstByTag(node, tagName), "");
-  }
-
-  function valueOf(node, fallback = null) {
-    if (!node) return fallback;
-    const attr = node.getAttribute("Value");
-    if (attr != null) return attr;
-    const text = node.textContent?.trim();
-    return text || fallback;
-  }
-
-  function numberValue(node, fallback = null) {
-    const value = Number(valueOf(node, NaN));
-    return Number.isFinite(value) ? value : fallback;
-  }
-
-  function booleanValue(node, fallback = false) {
-    const value = valueOf(node, null);
-    if (value == null) return fallback;
-    if (typeof value === "boolean") return value;
-    const normalized = String(value).toLowerCase();
-    if (["true", "1", "yes", "on"].includes(normalized)) return true;
-    if (["false", "0", "no", "off"].includes(normalized)) return false;
-    return fallback;
-  }
-
-  function attributeNumber(node, attr) {
-    if (!node) return null;
-    const value = Number(node.getAttribute(attr));
-    return Number.isFinite(value) ? value : null;
-  }
-
-  function readName(node, fallback) {
-    if (!node) return fallback;
-    const nameContainer = directChild(node, "Name") || firstDirectDescendant(node, "Name");
-    if (nameContainer) {
-      const direct = valueOf(nameContainer, "");
-      if (direct) return direct;
-      const user = firstValueByTag(nameContainer, "UserName");
-      const effective = firstValueByTag(nameContainer, "EffectiveName");
-      if (user || effective) return user || effective;
-    }
-    const user = valueOf(directChild(node, "UserName"), "");
-    const effective = valueOf(directChild(node, "EffectiveName"), "");
-    return user || effective || fallback;
-  }
-
-  function readColourIndex(node) {
-    const colorNode = directChild(node, "Color") || directChild(node, "ColorIndex") || firstDirectDescendant(node, "Color") || firstDirectDescendant(node, "ColorIndex");
-    return numberValue(colorNode, null);
-  }
-
-  function hasAncestorTag(node, tagName) {
-    let current = node.parentElement;
-    while (current) {
-      if (current.tagName === tagName) return true;
-      current = current.parentElement;
-    }
-    return false;
-  }
-
-  function uniqueElements(nodes) {
-    return [...new Set(nodes.filter(Boolean))];
-  }
-
-  function trackTypeFromTag(tag) {
-    return {
-      AudioTrack: "audio",
-      MidiTrack: "midi",
-      GroupTrack: "group",
-      ReturnTrack: "return",
-      MasterTrack: "master",
-      PreHearTrack: "cue",
-    }[tag] || tag.replace("Track", "").toLowerCase();
-  }
-
-  function trackColour(index) {
-    if (!Number.isFinite(index)) return "var(--line-strong)";
-    return TRACK_COLOURS[Math.abs(index) % TRACK_COLOURS.length];
-  }
-
-  function isAbsolutePath(path) {
-    return typeof path === "string" && (/^\//.test(path) || /^[A-Za-z]:[\\/]/.test(path));
-  }
-
-  function splitCamelCase(value) {
-    return String(value || "Unknown Device")
-      .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
-      .replace(/([A-Z])([A-Z][a-z])/g, "$1 $2")
-      .replace(/\bMidi\b/g, "MIDI")
-      .replace(/\bEq\b/g, "EQ")
-      .trim();
-  }
-
-  function stripExtension(name) {
-    return String(name || "").replace(/\.[^.]+$/, "");
-  }
-
-  function safeDecodeURIComponent(value) {
-    try { return decodeURIComponent(value); } catch { return value; }
-  }
-
-  function titleCase(value) {
-    return String(value || "")
-      .replace(/-/g, " ")
-      .replace(/\b\w/g, (letter) => letter.toUpperCase())
-      .replace("Midi", "MIDI")
-      .replace("Vst", "VST");
-  }
-
-  function plural(count, singular, pluralForm) {
-    return `${count} ${count === 1 ? singular : pluralForm}`;
-  }
-
   function formatBytes(bytes) {
     const value = Number(bytes);
     if (!Number.isFinite(value) || value < 0) return "—";
     if (value === 0) return "0 B";
     const units = ["B", "KB", "MB", "GB", "TB"];
     const index = Math.min(Math.floor(Math.log(value) / Math.log(1024)), units.length - 1);
-    const number = value / (1024 ** index);
+    const number = value / 1024 ** index;
     return `${number.toFixed(index === 0 || number >= 10 ? 0 : 1)} ${units[index]}`;
   }
 
@@ -1660,11 +710,9 @@
     const hours = Math.floor(total / 3600);
     const minutes = Math.floor((total % 3600) / 60);
     const secs = total % 60;
-    return hours ? `${hours}:${String(minutes).padStart(2, "0")}:${String(secs).padStart(2, "0")}` : `${minutes}:${String(secs).padStart(2, "0")}`;
-  }
-
-  function formatBeat(value) {
-    return Number.isFinite(value) ? Number(value.toFixed(3)).toString() : "—";
+    return hours
+      ? `${hours}:${String(minutes).padStart(2, "0")}:${String(secs).padStart(2, "0")}`
+      : `${minutes}:${String(secs).padStart(2, "0")}`;
   }
 
   function formatDateTime(value) {
@@ -1681,16 +729,10 @@
     return minor && minor !== "Unknown" ? `Live ${minor}` : "Unknown";
   }
 
-  function midiNoteName(pitch) {
-    if (!Number.isFinite(pitch)) return "—";
-    const notes = ["C", "C♯", "D", "D♯", "E", "F", "F♯", "G", "G♯", "A", "A♯", "B"];
-    const note = notes[((pitch % 12) + 12) % 12];
-    const octave = Math.floor(pitch / 12) - 2;
-    return `${note}${octave}`;
-  }
-
   function baseFilename(filename) {
-    return String(filename || "ableton-set").replace(/\.als$/i, "").replace(/[^a-z0-9._-]+/gi, "-");
+    return String(filename || "ableton-set")
+      .replace(/\.als$/i, "")
+      .replace(/[^a-z0-9._-]+/gi, "-");
   }
 
   function escapeHtml(value) {
@@ -1717,7 +759,9 @@
   function temporaryButtonLabel(button, label) {
     const original = button.textContent;
     button.textContent = label;
-    setTimeout(() => { button.textContent = original; }, 1300);
+    setTimeout(() => {
+      button.textContent = original;
+    }, 1300);
   }
 
   init();

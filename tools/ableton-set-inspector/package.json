@@ -4,6 +4,14 @@
   "type": "module",
   "scripts": {
     "test": "node --test",
-    "check": "node --check app.js && node --check src/parser/core.js"
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "check": "node --check app.js && node --check src/parser/core.js && node --check src/parser/xml-utils.js && node --check src/parser/set-parser.js && npm run lint && npm run format:check"
+  },
+  "devDependencies": {
+    "@xmldom/xmldom": "^0.9.10",
+    "eslint": "^10.7.0",
+    "prettier": "^3.9.6"
   }
 }

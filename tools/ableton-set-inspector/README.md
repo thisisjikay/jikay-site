@@ -11,11 +11,11 @@ A private, browser-based MVP for inspecting Ableton Live Set (`.als`) files with
 - Live version, tempo, time signature, scenes and locators
 - Track names, types, groups, mixer state, routing and freeze state
 - Ableton devices, racks, Max for Live, VST2, VST3 and Audio Unit detection
-- Audio and MIDI clip summaries
+- Internal audio and MIDI clip analysis for durations, media references and track counts
 - Referenced sample paths and absolute-only path warnings
 - External routing notices
 - Compact and full-detail modes
-- Search, text export, JSON export and print/PDF layout
+- Search, text export and print/PDF layout
 
 ## Run locally
 
@@ -65,8 +65,11 @@ The selected file is read into the browser's memory. This build includes no uplo
 - `index.html` — page structure
 - `styles.css` — responsive interface and print layout
 - `app.js` — browser state, file loading, report rendering and exports
-- `src/parser/` — importable parser rules and normalisation helpers
-- `test/` — automated parser behavior tests
+- `src/parser/core.js` — pure clip-context, arrangement-length and track-numbering rules
+- `src/parser/xml-utils.js` — DOM traversal and XML value helpers
+- `src/parser/set-parser.js` — complete Ableton XML-to-report normalisation pipeline
+- `test/fixtures/` — representative synthetic Live 10, 11 and 12 XML fixtures
+- `test/snapshots/` — deterministic normalized JSON snapshots
 
 ## Development
 
@@ -77,10 +80,12 @@ npm test
 npm run check
 ```
 
+Use `npm run lint` for ESLint, `npm run format` to apply Prettier, or `npm run format:check` to verify formatting without changing files.
+
 ## Development priorities
 
-1. Test against real Live 10, 11 and 12 Sets.
-2. Add parser fixtures for device and clip edge cases.
+1. Validate the synthetic Live 10, 11 and 12 coverage against anonymised real Sets.
+2. Add parser fixtures for additional device, automation and clip edge cases.
 3. Improve rack-chain and group hierarchy representation.
 4. Add whole-project folder scanning.
 5. Add Set-to-Set comparison.

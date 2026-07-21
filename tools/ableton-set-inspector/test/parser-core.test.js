@@ -3,11 +3,7 @@ import assert from "node:assert/strict";
 
 await import("../src/parser/core.js");
 
-const {
-  assignTrackDisplayIndexes,
-  calculateArrangementLength,
-  classifyClipContext,
-} = globalThis.AbletonSetParserCore;
+const { assignTrackDisplayIndexes, calculateArrangementLength, classifyClipContext } = globalThis.AbletonSetParserCore;
 
 function element(tagName, parentElement = null) {
   return { tagName, parentElement };
@@ -28,11 +24,14 @@ test("arrangement length ignores Session and Unknown clips", () => {
 });
 
 test("arrangement length includes enabled loop end", () => {
-  assert.equal(calculateArrangementLength({
-    clips: [{ context: "Arrangement", end: 16 }],
-    locators: [],
-    loop: { enabled: true, end: 32 },
-  }), 32);
+  assert.equal(
+    calculateArrangementLength({
+      clips: [{ context: "Arrangement", end: 16 }],
+      locators: [],
+      loop: { enabled: true, end: 32 },
+    }),
+    32,
+  );
 });
 
 test("clip context recognises known Session and Arrangement containers", () => {
@@ -58,15 +57,11 @@ test("clip context stays Unknown for take lanes and unrecognised containers", ()
 });
 
 test("normal and Return tracks use independent counters", () => {
-  const tracks = [
-    { type: "audio" },
-    { type: "midi" },
-    { type: "return" },
-    { type: "return" },
-    { type: "master" },
-    { type: "cue" },
-  ];
+  const tracks = [{ type: "audio" }, { type: "midi" }, { type: "return" }, { type: "return" }, { type: "master" }, { type: "cue" }];
 
   assignTrackDisplayIndexes(tracks);
-  assert.deepEqual(tracks.map((track) => track.displayIndex), ["01", "02", "R1", "R2", "M", "C"]);
+  assert.deepEqual(
+    tracks.map((track) => track.displayIndex),
+    ["01", "02", "R1", "R2", "M", "C"],
+  );
 });
