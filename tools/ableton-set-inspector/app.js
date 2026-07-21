@@ -263,7 +263,7 @@
       [String(report.stats.trackCount), "Tracks", "Audio, MIDI and Group tracks. Return and Master tracks are not included here."],
       [
         String(report.stats.uniquePluginCount),
-        "Unique plug-ins",
+        "External plug-ins",
         "The number of different VST2, VST3 and Audio Unit plug-ins used. Multiple instances of the same plug-in count once.",
       ],
       [
