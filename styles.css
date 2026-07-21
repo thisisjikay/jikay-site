@@ -1,0 +1,197 @@
+:root {
+  color-scheme: dark;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  background: #080611;
+  color: #fff;
+  font-synthesis: none;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-height: 100%;
+  margin: 0;
+}
+
+body {
+  min-width: 320px;
+}
+
+.hero {
+  position: relative;
+  display: grid;
+  min-height: 100vh;
+  min-height: 100svh;
+  padding: clamp(2rem, 6vw, 5rem);
+  place-items: center;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.hero::before,
+.hero::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+}
+
+.hero::before {
+  z-index: -2;
+  background:
+    #080611 url("assets/images/chalice_studios_background.jpg") center center / cover
+      no-repeat;
+  animation: reveal-background 1.4s ease-out both;
+}
+
+.hero::after {
+  z-index: -1;
+  background:
+    linear-gradient(180deg, rgba(2, 3, 9, 0.28), rgba(3, 2, 9, 0.56)),
+    radial-gradient(circle at center, transparent 10%, rgba(0, 0, 0, 0.22) 100%);
+}
+
+.hero__content {
+  display: flex;
+  width: min(100%, 46rem);
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(2.4rem, 7vh, 4.5rem);
+  text-align: center;
+  animation: reveal-content 900ms 200ms ease-out both;
+}
+
+.logo {
+  display: block;
+  width: clamp(12rem, 28vw, 18rem);
+  height: auto;
+  filter: drop-shadow(0 0.4rem 1.5rem rgba(0, 0, 0, 0.45));
+}
+
+.links {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(1.5rem, 6vw, 4rem);
+}
+
+.links a {
+  position: relative;
+  padding: 0.55rem 0.1rem;
+  color: inherit;
+  font-size: clamp(0.76rem, 1.2vw, 0.9rem);
+  font-weight: 700;
+  letter-spacing: 0.28em;
+  line-height: 1;
+  text-decoration: none;
+  text-transform: uppercase;
+  text-shadow: 0 0.15rem 0.8rem rgba(0, 0, 0, 0.75);
+}
+
+.links a::after {
+  position: absolute;
+  right: 0.28em;
+  bottom: 0;
+  left: 0;
+  height: 1px;
+  background: currentColor;
+  content: "";
+  opacity: 0;
+  transform: scaleX(0.4);
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease;
+}
+
+.links a:hover::after,
+.links a:focus-visible::after {
+  opacity: 1;
+  transform: scaleX(1);
+}
+
+.links a:focus-visible {
+  border-radius: 0.15rem;
+  outline: 2px solid #fff;
+  outline-offset: 0.45rem;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  border: 0;
+  margin: -1px;
+  clip: rect(0, 0, 0, 0);
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+@keyframes reveal-background {
+  from {
+    opacity: 0;
+    transform: scale(1.03);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes reveal-content {
+  from {
+    opacity: 0;
+    transform: translateY(0.75rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 34rem) {
+  .hero {
+    padding: 2rem 1.5rem;
+  }
+
+  .hero::before {
+    background-position: 45% center;
+  }
+
+  .hero__content {
+    gap: 2.8rem;
+  }
+
+  .logo {
+    width: min(65vw, 15rem);
+  }
+
+  .links {
+    flex-direction: column;
+    gap: 1.15rem;
+  }
+
+  .links a {
+    min-width: 8rem;
+    padding: 0.7rem 0.1rem;
+    font-size: 0.8rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
