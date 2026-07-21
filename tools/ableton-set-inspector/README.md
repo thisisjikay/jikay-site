@@ -1,6 +1,6 @@
 # Ableton Set Inspector
 
-A private, browser-based MVP for inspecting Ableton Live Set (`.als`) files without opening Ableton Live.
+A private, browser-based tool for checking Ableton Live Set (`.als`) files without opening Ableton Live.
 
 ## Features
 
@@ -8,36 +8,30 @@ A private, browser-based MVP for inspecting Ableton Live Set (`.als`) files with
 - Drag-and-drop `.als` loading
 - Native gzip decompression using `DecompressionStream`
 - XML parsing with `DOMParser`
-- Live version, tempo, time signature, scenes and locators
+- Live version, tempo, time signature and estimated Arrangement length
 - Track names, types, groups, mixer state, routing and freeze state
-- Ableton devices, racks, Max for Live, VST2, VST3 and Audio Unit detection
-- Internal audio and MIDI clip analysis for durations, media references and track counts
-- Referenced sample paths and absolute-only path warnings
-- External routing notices
-- Compact and full-detail modes
-- Search, text export and print/PDF layout
+- Unique VST2, VST3 and Audio Unit counts
+- Ableton devices, Racks and Max for Live detection
+- Per-device track occurrences with frozen and unfrozen status
+- Audio-file paths classified as inside or outside the Project folder
+- Search, plain-text export and a dependency-focused print/PDF layout
 
 ## Run locally
 
 The app has no build step.
 
 1. Download or clone the folder.
-2. Open `index.html` directly, or serve the folder locally:
+2. Serve the JiKay site repository root locally so the shared logo asset resolves correctly:
 
 ```bash
 python3 -m http.server 8080
 ```
 
-3. If serving locally, open `http://localhost:8080`, then drop an `.als` file onto the page.
+3. Open `http://localhost:8080/tools/ableton-set-inspector/`, then drop an `.als` file onto the page.
 
-## Deploy to GitHub Pages
+## Deploy
 
-1. Create a GitHub repository.
-2. Add the files in this folder to the repository root.
-3. Open **Settings → Pages**.
-4. Set the source to **Deploy from a branch**.
-5. Select the `main` branch and `/ (root)`.
-6. Save.
+Deploy this folder as part of the JiKay site so `../../assets/images/jikay_logo_2021_White.png` remains available. For a standalone deployment, copy the logo into the app folder and update its path in `index.html`.
 
 ## Browser support
 
@@ -45,16 +39,16 @@ A current browser with the `DecompressionStream` API is required. Current versio
 
 ## Important limitations
 
-This is a tolerant structural parser, not an official Ableton file-format implementation. Ableton may alter XML structures between releases. The app cannot:
+This is a tolerant structural reader, not an official Ableton file-format implementation. Ableton may alter its internal Set structure between releases. The app cannot:
 
 - Hear or render the project
 - Verify installed plug-ins or licences
-- Confirm that external paths exist
+- Confirm that files marked External still exist
 - Interpret every proprietary plug-in state
 - Guarantee that a Set will open successfully in Live
 - Modify or resave an `.als` file
 
-A report should be treated as a pre-flight inventory rather than a definitive compatibility test.
+A report should be treated as a pre-flight inventory rather than a guarantee that a Set will open perfectly on another computer.
 
 ## Privacy
 
@@ -65,6 +59,7 @@ The selected file is read into the browser's memory. This build includes no uplo
 - `index.html` — page structure
 - `styles.css` — responsive interface and print layout
 - `app.js` — browser state, file loading, report rendering and exports
+- `assets/` — favicon, Apple touch icon and social sharing image
 - `src/parser/core.js` — pure clip-context, arrangement-length and track-numbering rules
 - `src/parser/xml-utils.js` — DOM traversal and XML value helpers
 - `src/parser/set-parser.js` — complete Ableton XML-to-report normalisation pipeline
@@ -82,13 +77,9 @@ npm run check
 
 Use `npm run lint` for ESLint, `npm run format` to apply Prettier, or `npm run format:check` to verify formatting without changing files.
 
-## Development priorities
+## Current test coverage
 
-1. Validate the synthetic Live 10, 11 and 12 coverage against anonymised real Sets.
-2. Add parser fixtures for additional device, automation and clip edge cases.
-3. Improve rack-chain and group hierarchy representation.
-4. Add whole-project folder scanning.
-5. Add Set-to-Set comparison.
+Deterministic parser fixtures cover representative Live 10, 11 and 12 structures. Additional real-world Sets should be checked before expanding support for new Ableton Live versions.
 
 ## Disclaimer
 

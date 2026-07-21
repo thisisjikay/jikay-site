@@ -39,6 +39,7 @@
     reportContent: $("#reportContent"),
     sectionNav: $("#sectionNav"),
     reportSearch: $("#reportSearch"),
+    searchEmptyState: $("#searchEmptyState"),
     newSetButton: $("#newSetButton"),
     copyButton: $("#copyButton"),
     textButton: $("#textButton"),
@@ -60,12 +61,6 @@
     els.dropZone.addEventListener("click", (event) => {
       if (event.target.closest("button")) return;
       els.fileInput.click();
-    });
-    els.dropZone.addEventListener("keydown", (event) => {
-      if (event.key === "Enter" || event.key === " ") {
-        event.preventDefault();
-        els.fileInput.click();
-      }
     });
     els.fileInput.addEventListener("change", () => {
       const [file] = els.fileInput.files;
@@ -297,7 +292,8 @@
 
   function renderDevicesSection(report) {
     const allGroups = groupDevices(report.devices);
-    if (!allGroups.length) return sectionTemplate("devices", "Required devices", 0, emptyState("No devices were found in this Set."), "", "print-hidden");
+    if (!allGroups.length)
+      return sectionTemplate("devices", "Required devices", 0, emptyState("No devices were found in this Set."), "", "print-hidden");
     const frozenTrackIds = new Set(report.tracks.filter((track) => track.frozen).map((track) => String(track.id)));
     const groups = state.showNativeDevices ? allGroups : allGroups.filter((group) => !group.items.every(isAbletonNativeDevice));
     const visibleDeviceCount = groups.reduce((total, group) => total + group.items.length, 0);
@@ -308,6 +304,7 @@
       visibleDeviceCount,
       `
       <div class="section-controls">
+        ${externalGroupCount ? `<div class="device-status-legend" aria-label="Device freeze status"><span><i class="device-status-dot all-frozen" aria-hidden="true"></i> All tracks frozen</span><span><i class="device-status-dot has-unfrozen" aria-hidden="true"></i> Has unfrozen tracks</span></div>` : ""}
         <label class="toggle-control">
           <input id="nativeDevicesToggle" type="checkbox"${state.showNativeDevices ? " checked" : ""}>
           <span class="toggle-ui" aria-hidden="true"></span>
@@ -335,7 +332,7 @@
               <div class="compact-main">
                 <div class="device-title">
                   <strong>${escapeHtml(group.name)}</strong>
-                  ${externalDevice ? `<span class="device-status-dot ${allTracksFrozen ? "all-frozen" : "has-unfrozen"}" title="${escapeAttr(freezeStatusText)}" aria-label="${escapeAttr(freezeStatusText)}"></span>` : ""}
+                  ${externalDevice ? `<span class="device-status-dot ${allTracksFrozen ? "all-frozen" : "has-unfrozen"}" tabindex="0" role="img" data-tooltip="${escapeAttr(freezeStatusText)}" title="${escapeAttr(freezeStatusText)}" aria-label="${escapeAttr(freezeStatusText)}"></span>` : ""}
                 </div>
                 ${group.manufacturer ? `<small>${escapeHtml(group.manufacturer)}</small>` : ""}
                 <ul class="detail-occurrences">${group.items
@@ -451,7 +448,8 @@
 
   function renderMediaSection(report) {
     const files = report.media.uniqueFiles;
-    if (!files.length) return sectionTemplate("media", "Audio files", 0, emptyState("No audio files were found in this Set."), "", "print-hidden");
+    if (!files.length)
+      return sectionTemplate("media", "Audio files", 0, emptyState("No audio files were found in this Set."), "", "print-hidden");
     const externalCount = files.filter((file) => file.projectLocation === "external").length;
     return sectionTemplate(
       "media",
@@ -478,7 +476,7 @@
         </table>
       </div>
     `,
-      externalCount ? `(${formatCount(externalCount, "external audio file")}!)` : "",
+      externalCount ? `${formatCount(externalCount, "file")} outside Project` : "",
       externalCount ? "" : "print-hidden",
     );
   }
@@ -581,6 +579,13 @@
       });
     });
     bindExpandableRows(".expandable-device-row", "deviceKey", state.expandedDevices);
+    document.querySelectorAll(".device-status-dot[tabindex]").forEach((dot) => {
+      dot.addEventListener("click", (event) => event.stopPropagation());
+      dot.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") event.preventDefault();
+        event.stopPropagation();
+      });
+    });
   }
 
   function bindExpandableRows(selector, dataKey, expandedSet) {
@@ -623,6 +628,8 @@
       const visibleCount = searchable.filter((item) => !item.classList.contains("filtered-out")).length;
       section.classList.toggle("filtered-out", Boolean(query) && searchable.length > 0 && visibleCount === 0);
     });
+    const hasMatches = [...rows].some((row) => !row.classList.contains("filtered-out"));
+    els.searchEmptyState.hidden = !query || hasMatches;
   }
 
   function calculateTrackDepth(track, trackMap) {

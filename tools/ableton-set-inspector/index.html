@@ -5,6 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#171717" />
     <meta name="description" content="See the tracks, devices and audio files used by an Ableton Live Set without opening Live." />
+    <link rel="canonical" href="https://jikay.co.uk/tools/ableton-set-inspector/" />
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="assets/favicon-512.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="JiKay" />
+    <meta property="og:title" content="Ableton Set Inspector" />
+    <meta property="og:description" content="Check a Live Set without opening Live." />
+    <meta property="og:url" content="https://jikay.co.uk/tools/ableton-set-inspector/" />
+    <meta property="og:image" content="https://jikay.co.uk/tools/ableton-set-inspector/assets/social-share.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="JiKay Ableton Set Inspector" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Ableton Set Inspector" />
+    <meta name="twitter:description" content="Check a Live Set without opening Live." />
+    <meta name="twitter:image" content="https://jikay.co.uk/tools/ableton-set-inspector/assets/social-share.png" />
     <title>Ableton Set Inspector</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
@@ -36,13 +53,13 @@
           </p>
         </div>
 
-        <div class="drop-zone" id="dropZone" tabindex="0" role="button" aria-label="Choose or drop an Ableton Live Set">
+        <div class="drop-zone" id="dropZone" role="group" aria-labelledby="dropZoneTitle" aria-describedby="dropZonePrivacy">
           <input id="fileInput" type="file" accept=".als,application/gzip,application/x-gzip" hidden />
           <div class="drop-icon" aria-hidden="true">ALS</div>
-          <h3>Drop an Ableton Set here</h3>
+          <h3 id="dropZoneTitle">Drop an Ableton Set here</h3>
           <p>or choose a file from your computer</p>
           <button class="primary-button" id="chooseButton" type="button">Choose .als file</button>
-          <small>Your Set stays on this device and is never changed.</small>
+          <small id="dropZonePrivacy">Your Set stays on this device and is never changed.</small>
         </div>
 
         <div class="support-note" id="supportNote" hidden></div>
@@ -101,6 +118,9 @@
         </div>
 
         <nav class="section-nav" id="sectionNav" aria-label="Report sections"></nav>
+        <div class="search-empty-state" id="searchEmptyState" role="status" aria-live="polite" hidden>
+          No matching tracks, devices or files.
+        </div>
         <div id="reportContent"></div>
       </section>
 
@@ -112,11 +132,17 @@
         <div class="about-grid">
           <article>
             <h3>What it does</h3>
-            <p>Shows the tracks, devices and audio files referenced by an Ableton Live Set, including plug-ins used, frozen tracks and whether audio is stored inside the project folder.</p>
+            <p>
+              Shows the tracks, devices and audio files referenced by an Ableton Live Set, including plug-ins used, frozen tracks and
+              whether audio is stored inside the project folder.
+            </p>
           </article>
           <article>
             <h3>Why it’s useful</h3>
-            <p>Helps with collaboration and archiving by highlighting third-party plug-in dependencies, tracks that may need freezing and potentially missing audio files.</p>
+            <p>
+              Helps with collaboration and archiving by highlighting third-party plug-in dependencies, tracks that may need freezing and
+              potentially missing audio files.
+            </p>
           </article>
           <article>
             <h3>What it does not do</h3>
