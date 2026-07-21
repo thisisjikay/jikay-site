@@ -1260,6 +1260,9 @@ footer {
 }
 
 @media print {
+  @page {
+    margin: 12mm;
+  }
   :root {
     color-scheme: light;
     --bg: #fff;
@@ -1285,15 +1288,52 @@ footer {
   footer {
     display: none !important;
   }
+  #section-tracks,
+  #section-technical,
+  .print-hidden,
+  .section-controls,
+  .native-device,
+  .detail-occurrences,
+  .row-chevron,
+  .section-heading .count {
+    display: none !important;
+  }
   main {
     width: 100%;
   }
   .report {
     padding: 0;
   }
+  .report-header {
+    margin-bottom: 16px;
+  }
+  .report-header h2 {
+    font-size: 28px;
+  }
+  .summary-card {
+    min-height: 0;
+    padding: 10px;
+  }
+  .summary-card .value {
+    margin-bottom: 5px;
+    font-size: 18px;
+  }
   .report-section {
-    break-inside: avoid;
+    margin-top: 12px;
     box-shadow: none;
+  }
+  .section-heading {
+    padding: 12px 14px;
+  }
+  .compact-row {
+    padding: 10px 14px;
+  }
+  .data-table th,
+  .data-table td {
+    padding: 8px 10px;
+  }
+  .media-table tr:not(.external-audio-row) {
+    display: none;
   }
   .report-section.collapsed .section-body {
     display: block;

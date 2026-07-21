@@ -297,10 +297,11 @@
 
   function renderDevicesSection(report) {
     const allGroups = groupDevices(report.devices);
-    if (!allGroups.length) return sectionTemplate("devices", "Required devices", 0, emptyState("No devices were found in this Set."));
+    if (!allGroups.length) return sectionTemplate("devices", "Required devices", 0, emptyState("No devices were found in this Set."), "", "print-hidden");
     const frozenTrackIds = new Set(report.tracks.filter((track) => track.frozen).map((track) => String(track.id)));
     const groups = state.showNativeDevices ? allGroups : allGroups.filter((group) => !group.items.every(isAbletonNativeDevice));
     const visibleDeviceCount = groups.reduce((total, group) => total + group.items.length, 0);
+    const externalGroupCount = groups.filter((group) => !group.items.every(isAbletonNativeDevice)).length;
     return sectionTemplate(
       "devices",
       "Required devices",
@@ -330,7 +331,7 @@
               ? "All occurrences are on frozen tracks."
               : "One or more occurrences are on unfrozen tracks.";
             return `
-            <div class="compact-row expandable-device-row${expanded ? " open" : ""}" role="button" tabindex="0" aria-expanded="${String(expanded)}" data-device-key="${escapeAttr(key)}" data-searchable="${escapeAttr(`${group.name} ${formats.join(" ")} ${tracks.join(" ")}`)}">
+            <div class="compact-row expandable-device-row${externalDevice ? " external-device" : " native-device"}${expanded ? " open" : ""}" role="button" tabindex="0" aria-expanded="${String(expanded)}" data-device-key="${escapeAttr(key)}" data-searchable="${escapeAttr(`${group.name} ${formats.join(" ")} ${tracks.join(" ")}`)}">
               <div class="compact-main">
                 <div class="device-title">
                   <strong>${escapeHtml(group.name)}</strong>
@@ -356,6 +357,8 @@
           : emptyState("No plug-ins or Max for Live devices were found. Turn on Include Ableton devices to see Live’s built-in devices.")
       }
     `,
+      "",
+      externalGroupCount ? "" : "print-hidden",
     );
   }
 
@@ -448,7 +451,7 @@
 
   function renderMediaSection(report) {
     const files = report.media.uniqueFiles;
-    if (!files.length) return sectionTemplate("media", "Audio files", 0, emptyState("No audio files were found in this Set."));
+    if (!files.length) return sectionTemplate("media", "Audio files", 0, emptyState("No audio files were found in this Set."), "", "print-hidden");
     const externalCount = files.filter((file) => file.projectLocation === "external").length;
     return sectionTemplate(
       "media",
@@ -462,7 +465,7 @@
             ${files
               .map(
                 (file) => `
-              <tr data-searchable="${escapeAttr(`${file.name} ${file.effectivePath}`)}">
+              <tr class="${file.projectLocation === "external" ? "external-audio-row" : "in-project-audio-row"}" data-searchable="${escapeAttr(`${file.name} ${file.effectivePath}`)}">
                 <td data-label="File"><span class="table-primary${file.projectLocation === "external" ? " external-file-name" : ""}">${escapeHtml(file.name)}</span></td>
                 <td data-label="Location"><span class="badge has-tooltip ${file.projectLocation === "external" ? "warning" : ""}" tabindex="0" data-tooltip="${escapeAttr(mediaLocationTooltip(file))}" title="${escapeAttr(mediaLocationTooltip(file))}">${escapeHtml(mediaReferenceLabel(file))}</span></td>
                 <td data-label="File size" class="mono">${file.originalSize ? formatBytes(file.originalSize) : "—"}</td>
@@ -476,6 +479,7 @@
       </div>
     `,
       externalCount ? `(${formatCount(externalCount, "external audio file")}!)` : "",
+      externalCount ? "" : "print-hidden",
     );
   }
 
@@ -525,11 +529,11 @@
     );
   }
 
-  function sectionTemplate(id, title, count, body, warning = "") {
+  function sectionTemplate(id, title, count, body, warning = "", className = "") {
     const collapsed = state.collapsedSections.has(id);
     const tooltip = sectionTooltip(id);
     return `
-      <section class="report-section${collapsed ? " collapsed" : ""}" id="section-${escapeAttr(id)}" data-section-id="${escapeAttr(id)}" data-section-title="${escapeAttr(title)}">
+      <section class="report-section${className ? ` ${escapeAttr(className)}` : ""}${collapsed ? " collapsed" : ""}" id="section-${escapeAttr(id)}" data-section-id="${escapeAttr(id)}" data-section-title="${escapeAttr(title)}">
         <button class="section-heading has-tooltip" type="button" aria-expanded="${String(!collapsed)}" aria-controls="section-body-${escapeAttr(id)}" data-tooltip="${escapeAttr(tooltip)}" title="${escapeAttr(tooltip)}">
           <span class="section-title"><h3>${escapeHtml(title)}</h3><span class="section-help" aria-hidden="true">?</span>${warning ? `<span class="section-warning">${escapeHtml(warning)}</span>` : ""}</span>
           <span class="section-heading-meta"><span class="count">${count}</span><span class="section-chevron" aria-hidden="true">›</span></span>
