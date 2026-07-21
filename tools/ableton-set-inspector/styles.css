@@ -690,6 +690,9 @@ footer {
   font-size: 14px;
   font-weight: 700;
 }
+.external-file-name {
+  color: var(--warning);
+}
 .table-secondary {
   display: block;
   color: var(--muted);

@@ -441,7 +441,7 @@
               .map(
                 (file) => `
               <tr data-searchable="${escapeAttr(`${file.name} ${file.effectivePath}`)}">
-                <td data-label="File"><span class="table-primary">${escapeHtml(file.name)}</span></td>
+                <td data-label="File"><span class="table-primary${file.projectLocation === "external" ? " external-file-name" : ""}">${escapeHtml(file.name)}</span></td>
                 <td data-label="Location"><span class="badge has-tooltip ${file.projectLocation === "external" ? "warning" : ""}" tabindex="0" data-tooltip="${escapeAttr(mediaLocationTooltip(file))}" title="${escapeAttr(mediaLocationTooltip(file))}">${escapeHtml(mediaReferenceLabel(file))}</span></td>
                 <td data-label="File size" class="mono">${file.originalSize ? formatBytes(file.originalSize) : "—"}</td>
                 <td data-label="Saved path" class="path-cell mono" title="${escapeAttr(file.relativePath || file.absolutePath || file.name)}">${escapeHtml(file.relativePath || file.absolutePath || file.name)}</td>
