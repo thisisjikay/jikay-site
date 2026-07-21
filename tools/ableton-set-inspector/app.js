@@ -254,10 +254,18 @@
 
     const summaryItems = [
       [formatLiveVersion(report), "Live version", "The version of Ableton Live that last saved this Set."],
-      [formatNumber(report.session.tempo, "—"), "Tempo", "The main Set tempo in beats per minute (BPM)."],
+      [
+        report.session.tempo == null ? "—" : `${formatNumber(report.session.tempo)} BPM`,
+        "Tempo",
+        "The main Set tempo in beats per minute (BPM).",
+      ],
       [report.session.timeSignature || "—", "Time signature", "The Set’s main time signature."],
       [String(report.stats.trackCount), "Tracks", "Audio, MIDI and Group tracks. Return and Master tracks are not included here."],
-      [String(report.stats.pluginCount), "Plug-ins", "VST and Audio Unit instances used in the Set."],
+      [
+        String(report.stats.uniquePluginCount),
+        "Unique plug-ins",
+        "The number of different VST2, VST3 and Audio Unit plug-ins used. Multiple instances of the same plug-in count once.",
+      ],
       [
         formatDuration(report.session.arrangementLengthSeconds),
         "Arrangement length",
@@ -290,6 +298,7 @@
   function renderDevicesSection(report) {
     const allGroups = groupDevices(report.devices);
     if (!allGroups.length) return sectionTemplate("devices", "Required devices", 0, emptyState("No devices were found in this Set."));
+    const frozenTrackIds = new Set(report.tracks.filter((track) => track.frozen).map((track) => String(track.id)));
     const groups = state.showNativeDevices ? allGroups : allGroups.filter((group) => !group.items.every(isAbletonNativeDevice));
     const visibleDeviceCount = groups.reduce((total, group) => total + group.items.length, 0);
     return sectionTemplate(
@@ -315,12 +324,25 @@
             const tracks = [...new Set(group.items.map((item) => item.trackName))];
             const key = deviceGroupKey(group);
             const expanded = state.expandedDevices.has(key);
+            const externalDevice = !group.items.every(isAbletonNativeDevice);
+            const allTracksFrozen = group.items.every((item) => frozenTrackIds.has(String(item.trackId)));
+            const freezeStatusText = allTracksFrozen
+              ? "All occurrences are on frozen tracks."
+              : "One or more occurrences are on unfrozen tracks.";
             return `
             <div class="compact-row expandable-device-row${expanded ? " open" : ""}" role="button" tabindex="0" aria-expanded="${String(expanded)}" data-device-key="${escapeAttr(key)}" data-searchable="${escapeAttr(`${group.name} ${formats.join(" ")} ${tracks.join(" ")}`)}">
               <div class="compact-main">
-                <strong>${escapeHtml(group.name)}</strong>
+                <div class="device-title">
+                  <strong>${escapeHtml(group.name)}</strong>
+                  ${externalDevice ? `<span class="device-status-dot ${allTracksFrozen ? "all-frozen" : "has-unfrozen"}" title="${escapeAttr(freezeStatusText)}" aria-label="${escapeAttr(freezeStatusText)}"></span>` : ""}
+                </div>
                 ${group.manufacturer ? `<small>${escapeHtml(group.manufacturer)}</small>` : ""}
-                <ul class="detail-occurrences">${group.items.map((item) => `<li>• ${escapeHtml(item.trackName)}${item.branchName ? ` / ${escapeHtml(item.branchName)}` : ""}${!item.enabled ? " — disabled" : ""}</li>`).join("")}</ul>
+                <ul class="detail-occurrences">${group.items
+                  .map((item) => {
+                    const frozen = frozenTrackIds.has(String(item.trackId));
+                    return `<li>• ${escapeHtml(item.trackName)} <span class="${frozen ? "frozen-prefix" : "unfrozen-prefix"}">(${frozen ? "FROZEN" : "UNFROZEN"})</span>${!item.enabled ? " — disabled" : ""}</li>`;
+                  })
+                  .join("")}</ul>
               </div>
               <div><span class="badge ${deviceFormatBadgeClass(formats)}">${escapeHtml(formats.join(" / "))}</span></div>
               <div class="compact-count">×${group.items.length}</div>
@@ -465,7 +487,8 @@
 
   function mediaLocationTooltip(file) {
     if (file.projectLocation === "in-project") return "Ableton marks this file as being stored inside the current Project folder.";
-    if (file.projectLocation === "external") return "Ableton marks this file as coming from outside the current Project folder.";
+    if (file.projectLocation === "external")
+      return "This file is stored outside the Project folder. It will not load on another computer unless that computer also has the file. To make the Project portable, open it on the computer that has the original file, then use Collect All and Save in Ableton Live.";
     return "This Set does not contain enough information to tell where the file is stored.";
   }
 
@@ -614,7 +637,7 @@
 
   function renderTrackStates(track) {
     const badges = [];
-    if (track.frozen) badges.push(`<span class="badge accent">Frozen</span>`);
+    if (track.frozen) badges.push(`<span class="badge success">Frozen</span>`);
     if (track.muted) badges.push(`<span class="badge off">Muted</span>`);
     if (track.solo) badges.push(`<span class="badge">Solo</span>`);
     if (track.armed) badges.push(`<span class="badge warning">Armed</span>`);

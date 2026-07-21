@@ -729,6 +729,9 @@ footer {
 .badge.warning {
   color: var(--warning);
 }
+.badge.success {
+  color: var(--success);
+}
 .badge.off {
   color: var(--faint);
   text-decoration: line-through;
@@ -920,6 +923,12 @@ footer {
 .compact-main {
   min-width: 0;
 }
+.device-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
 .compact-main strong {
   display: block;
   font-size: 14px;
@@ -927,6 +936,24 @@ footer {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+.device-title strong {
+  min-width: 0;
+}
+.device-status-dot {
+  width: 8px;
+  height: 8px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  cursor: help;
+}
+.device-status-dot.all-frozen {
+  background: var(--success);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--success) 12%, transparent);
+}
+.device-status-dot.has-unfrozen {
+  background: var(--warning);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--warning) 12%, transparent);
 }
 .compact-main small {
   display: block;
@@ -951,6 +978,14 @@ footer {
 }
 .detail-occurrences li {
   padding-top: 2px;
+}
+.frozen-prefix {
+  color: var(--success);
+  font-weight: 700;
+}
+.unfrozen-prefix {
+  color: var(--warning);
+  font-weight: 700;
 }
 .key-value-list {
   display: grid;
