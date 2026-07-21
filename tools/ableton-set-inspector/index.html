@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#171717">
+  <meta name="description" content="Inspect Ableton Live Set files locally in your browser without opening Ableton Live.">
+  <title>Ableton Set Inspector</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+      <div>
+        <h1>Ableton Set Inspector</h1>
+        <p>Read a Live Set without opening Live.</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="icon-button" id="themeButton" type="button" aria-label="Toggle colour theme" title="Toggle colour theme">◐</button>
+      <a class="text-link" href="#about">About</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" id="dropSection">
+      <div class="hero-copy">
+        <div class="eyebrow">PRIVATE • LOCAL • READ-ONLY</div>
+        <h2>See what is inside an <span>.als</span> file.</h2>
+        <p>Drop in an Ableton Live Set to inspect its tracks, devices, clips, routing and media references. The file is processed only in this browser.</p>
+      </div>
+
+      <div class="drop-zone" id="dropZone" tabindex="0" role="button" aria-label="Choose or drop an Ableton Live Set">
+        <input id="fileInput" type="file" accept=".als,application/gzip,application/x-gzip" hidden>
+        <div class="drop-icon" aria-hidden="true">ALS</div>
+        <h3>Drop an Ableton Set here</h3>
+        <p>or choose a file from your computer</p>
+        <button class="primary-button" id="chooseButton" type="button">Choose .als file</button>
+        <button class="secondary-button" id="demoButton" type="button">Load demo report</button>
+        <small>Nothing is uploaded. The app does not modify your Set.</small>
+      </div>
+
+      <div class="support-note" id="supportNote" hidden></div>
+    </section>
+
+    <section class="processing" id="processingSection" hidden aria-live="polite">
+      <div class="spinner" aria-hidden="true"></div>
+      <div>
+        <h2 id="processingTitle">Reading Set…</h2>
+        <p id="processingDetail">Preparing the file for analysis.</p>
+      </div>
+      <div class="progress-track" aria-hidden="true"><div id="progressBar"></div></div>
+    </section>
+
+    <section class="error-panel" id="errorSection" hidden role="alert">
+      <div class="status-icon error">!</div>
+      <div>
+        <h2 id="errorTitle">The Set could not be read</h2>
+        <p id="errorMessage"></p>
+        <details id="errorDetailsWrap" hidden>
+          <summary>Technical details</summary>
+          <pre id="errorDetails"></pre>
+        </details>
+        <button class="primary-button" id="tryAgainButton" type="button">Choose another Set</button>
+      </div>
+    </section>
+
+    <section class="report" id="reportSection" hidden>
+      <div class="report-header">
+        <div>
+          <div class="eyebrow" id="scanStatus">SET INSPECTED LOCALLY</div>
+          <h2 id="reportFilename">Project.als</h2>
+          <p id="reportSubhead"></p>
+        </div>
+        <div class="report-actions">
+          <button class="secondary-button" id="newSetButton" type="button">Open another</button>
+          <button class="secondary-button" id="copyButton" type="button">Copy report</button>
+          <button class="secondary-button" id="textButton" type="button">Export text</button>
+          <button class="secondary-button" id="jsonButton" type="button">Export JSON</button>
+          <button class="secondary-button" id="printButton" type="button">Print / PDF</button>
+        </div>
+      </div>
+
+      <div class="summary-grid" id="summaryGrid"></div>
+
+      <div class="report-toolbar">
+        <label class="search-box">
+          <span aria-hidden="true">⌕</span>
+          <input id="reportSearch" type="search" placeholder="Search tracks, devices or files…" autocomplete="off">
+        </label>
+        <label class="toggle-control">
+          <input id="detailToggle" type="checkbox">
+          <span class="toggle-ui" aria-hidden="true"></span>
+          Full detail
+        </label>
+      </div>
+
+      <nav class="section-nav" id="sectionNav" aria-label="Report sections"></nav>
+      <div id="reportContent"></div>
+    </section>
+
+    <section class="about" id="about">
+      <div>
+        <div class="eyebrow">ABOUT THIS BUILD</div>
+        <h2>Designed as a safe first-pass project report.</h2>
+      </div>
+      <div class="about-grid">
+        <article>
+          <h3>What it does</h3>
+          <p>Reads the gzip-compressed XML inside an Ableton Live Set and turns recognisable structures into a human-readable report.</p>
+        </article>
+        <article>
+          <h3>What it does not do</h3>
+          <p>It cannot hear the project, verify licences, scan installed plug-ins, or prove that external file paths still exist.</p>
+        </article>
+        <article>
+          <h3>Compatibility</h3>
+          <p>The parser is deliberately tolerant of unknown nodes. New or unusual Live structures may produce a partial report rather than failing completely.</p>
+        </article>
+      </div>
+      <p class="disclaimer">Ableton and Ableton Live are trademarks of Ableton AG. This independent utility is not affiliated with or endorsed by Ableton.</p>
+    </section>
+  </main>
+
+  <footer>
+    <span>Ableton Set Inspector MVP</span>
+    <span>Files stay on your computer.</span>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
