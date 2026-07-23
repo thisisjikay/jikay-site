@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <meta name="theme-color" content="#080611" />
+    <script>
+      if (window.location.protocol !== "file:") {
+        const base = document.createElement("base");
+        base.href = "/";
+        document.head.append(base);
+      }
+    </script>
+
+    <title>Page not found — JiKay</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="assets/icons/favicon-192.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="assets/icons/favicon-512.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="hero error-page">
+      <div class="hero__content error-page__content">
+        <img
+          class="logo"
+          src="assets/images/jikay_logo_2021_White.png"
+          alt="JiKay"
+          width="2156"
+          height="1719"
+        />
+
+        <div class="error-page__message">
+          <p class="error-page__code" aria-hidden="true">404</p>
+          <h1>Page not found</h1>
+          <p>The page you’re looking for has moved or doesn’t exist.</p>
+        </div>
+
+        <a class="home-link" href="index.html">Back home</a>
+      </div>
+    </main>
+  </body>
+</html>
