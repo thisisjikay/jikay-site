@@ -562,7 +562,7 @@ audio {
   width: 80%;
   height: 100%;
   object-position: center;
-  transform: translateY(-0.9rem);
+  transform: translateY(-1.8rem);
 }
 
 .client-logo[data-client="nhl"] img {
