@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://jikay.co.uk/sitemap.xml
