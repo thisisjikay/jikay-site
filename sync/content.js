@@ -109,6 +109,15 @@ window.SYNC_CONTENT = {
       type: "disco",
       discoUrl: "https://jikay.disco.ac/e/t/209492479?s=v2%3Alegacy%3AhoKry8D-4TWrDpfZm7d9Y0XnJL8OAKuq1jpVokPleL0&artwork=true&color=%23c9b6ff&theme=dark",
     },
+    {
+      title: "McVitie’s — There Is Only One",
+      brand: "McVitie’s",
+      role: "Music",
+      type: "youtube",
+      youtubeId: "ucXQGNY7ZcQ",
+      poster: "../assets/sync/mcvities-there-is-only-one.jpg",
+      alt: "McVitie’s There Is Only One advert featuring a man seated in a television studio",
+    },
   ],
   clients: [
     { name: "A24", src: "../assets/sync/a24-logo-white.png" },

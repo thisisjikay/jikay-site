@@ -507,8 +507,7 @@ audio {
 
 .client-marquee {
   position: relative;
-  width: 100vw;
-  margin-left: calc(50% - 50vw);
+  width: 100%;
   overflow: hidden;
   -webkit-mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
   mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
@@ -554,10 +553,16 @@ audio {
 
 .client-logo[data-client="ea-sports"] img,
 .client-logo[data-client="adidas"] img,
-.client-logo[data-client="mcvitie-s"] img,
 .client-logo[data-client="pepsi"] img {
   width: 52%;
   height: 68%;
+}
+
+.client-logo[data-client="mcvitie-s"] img {
+  width: 80%;
+  height: 100%;
+  object-position: center;
+  transform: translateY(-0.9rem);
 }
 
 .client-logo[data-client="nhl"] img {
