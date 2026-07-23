@@ -1,7 +1,6 @@
 (() => {
   const content = window.SYNC_CONTENT || { placements: [], clients: [] };
   const placementsContainer = document.querySelector("#placements");
-  const projectCount = document.querySelector("#project-count");
   const emptyState = document.querySelector("#empty-state");
   const clientsSection = document.querySelector("#clients");
   const logosContainer = document.querySelector("#client-logos");
@@ -73,7 +72,7 @@
       "aria-label",
       `${isFilePreview ? "Watch" : "Play"} ${placement.title} by ${placement.brand}`,
     );
-    button.innerHTML = `<span class="video-trigger__icon" aria-hidden="true"></span><span>${isFilePreview ? "Watch on YouTube" : "Play film"}</span>`;
+    button.innerHTML = `<span class="video-trigger__control"><span class="video-trigger__mark" aria-hidden="true"></span><span class="action-label action-label--full">${isFilePreview ? "Watch on YouTube" : "Play film"}</span><span class="action-label action-label--short">${isFilePreview ? "YouTube" : "Play"}</span></span>`;
     button.addEventListener("click", () => {
       if (isFilePreview) {
         window.open(
@@ -194,8 +193,6 @@
   content.placements.forEach((placement, index) => {
     placementsContainer.append(createPlacement(placement, index));
   });
-
-  projectCount.textContent = `${String(content.placements.length).padStart(2, "0")} ${content.placements.length === 1 ? "project" : "projects"}`;
 
   if (!content.placements.length) emptyState.hidden = false;
 
