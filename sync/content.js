@@ -89,7 +89,7 @@ window.SYNC_CONTENT = {
       role: "Music",
       type: "youtube",
       youtubeId: "ucXQGNY7ZcQ",
-      poster: "../assets/sync/mcvities-there-is-only-one.jpg",
+      poster: "../assets/sync/mcvities-there-is-only-one-enhanced.png",
       alt: "McVitie’s There Is Only One advert featuring a man seated in a television studio",
     },
     {
