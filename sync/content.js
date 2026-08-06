@@ -66,9 +66,9 @@
 window.SYNC_CONTENT = {
   placements: [
     {
-      title: "Misty Green — Official Trailer",
+      title: "Misty Green - Official Trailer",
       brand: "A24",
-      role: "Music",
+      role: "Trailer",
       type: "youtube",
       youtubeId: "ACaWuqeLpSk",
       poster: "../assets/sync/misty-green-a24.jpg",
@@ -84,16 +84,16 @@ window.SYNC_CONTENT = {
       alt: "Ninja seated on a train with the adidas logo",
     },
     {
-      title: "McVitie’s — There Is Only One",
+      title: "McVitie’s 'There Is Only One'",
       brand: "McVitie’s",
-      role: "Music",
+      role: "Custom Music",
       type: "youtube",
       youtubeId: "ucXQGNY7ZcQ",
       poster: "../assets/sync/mcvities-there-is-only-one-enhanced.png",
       alt: "McVitie’s There Is Only One advert featuring a man seated in a television studio",
     },
     {
-      title: "Shining — FIFA 22 Soundtrack",
+      title: "FIFA 22 Soundtrack",
       brand: "EA Sports",
       role: "Soundtrack placement",
       type: "spotify",
@@ -112,9 +112,9 @@ window.SYNC_CONTENT = {
       alt: "JD Sports Heat It Up campaign featuring five models on a rooftop",
     },
     {
-      title: "Pepsi — Radio Advertisement",
+      title: "Pepsi Max Christmas Radio Advertisement",
       brand: "Pepsi",
-      role: "Music",
+      role: "Custom Music",
       type: "disco",
       discoUrl: "https://jikay.disco.ac/e/t/209492479?s=v2%3Alegacy%3AhoKry8D-4TWrDpfZm7d9Y0XnJL8OAKuq1jpVokPleL0&artwork=true&color=%23c9b6ff&theme=dark",
     },
