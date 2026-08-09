@@ -34,6 +34,7 @@
     reportSection: $("#reportSection"),
     reportFilename: $("#reportFilename"),
     reportSubhead: $("#reportSubhead"),
+    reportModified: $("#reportModified"),
     scanStatus: $("#scanStatus"),
     summaryGrid: $("#summaryGrid"),
     reportContent: $("#reportContent"),
@@ -245,6 +246,7 @@
 
     els.reportFilename.textContent = report.file.name;
     els.reportSubhead.textContent = `${formatBytes(report.file.size)} • ${report.live.creator} • checked ${formatDateTime(report.generatedAt)}`;
+    els.reportModified.textContent = `Project modified ${report.file.lastModified ? formatDateTime(report.file.lastModified) : "Unknown"}`;
     els.scanStatus.textContent = "CHECKED ON THIS DEVICE";
 
     const summaryItems = [
