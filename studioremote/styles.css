@@ -37,7 +37,7 @@ p { text-wrap: pretty; }
 .hero__shade { z-index: -1; background: linear-gradient(180deg, rgba(8,6,17,.22) 0%, rgba(8,6,17,.28) 45%, rgba(8,6,17,.4) 80%, #080611 100%); }
 .hero__content { width: min(100%, 64rem); text-align: center; animation: reveal-content 950ms cubic-bezier(.16,1,.3,1) both; }
 .product-connection { --product-height: clamp(9rem, 24svh, 14rem); display: flex; align-items: center; justify-content: center; margin: 0 auto 1.75rem; }
-.product-connection__max { display: block; width: auto; height: calc(var(--product-height) * .77); border-radius: 3px; }
+.product-connection__max { display: block; width: auto; height: calc(var(--product-height) * .62); border-radius: 3px; }
 .product-connection__line { flex: 0 0 clamp(2rem, 5vw, 4.5rem); height: 1px; background: var(--connection); }
 .phone-product { aspect-ratio: 816 / 1591; }
 .phone-product img { display: block; width: 100%; height: auto; }
