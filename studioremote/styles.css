@@ -37,7 +37,8 @@ p { text-wrap: pretty; }
 .hero__shade { z-index: -1; background: linear-gradient(180deg, rgba(8,6,17,.22) 0%, rgba(8,6,17,.28) 45%, rgba(8,6,17,.4) 80%, #080611 100%); }
 .hero__content { width: min(100%, 64rem); text-align: center; animation: reveal-content 950ms cubic-bezier(.16,1,.3,1) both; }
 .product-connection { --product-height: clamp(10.8rem, 28.8svh, 16.8rem); display: flex; align-items: center; justify-content: center; margin: 0 auto 1.75rem; }
-.product-connection__max { display: block; width: auto; height: calc(var(--product-height) * .62); border-radius: 3px; }
+.product-connection__max { display: block; width: auto; height: calc(var(--product-height) * .62); }
+.product-connection__max, .setup__visual img { clip-path: inset(.15% round 1.5%); }
 .product-connection__line { flex: 0 0 clamp(2rem, 5vw, 4.5rem); height: 1px; background: var(--connection); }
 .phone-product { aspect-ratio: 816 / 1591; }
 .phone-product img { display: block; width: 100%; height: auto; }
@@ -76,15 +77,15 @@ h3 { font-size: 1.3rem; font-weight: 500; line-height: 1.35; letter-spacing: -.0
 .setup .section-intro { display: block; }
 .setup .section-intro > p { margin-top: 1.5rem; }
 .setup__visual { margin: 0; }
-.setup__visual img { display: block; width: 100%; height: auto; border-radius: 5px; }
+.setup__visual img { display: block; width: 100%; height: auto; }
 .setup__visual figcaption { margin-top: 1rem; color: var(--muted); font-size: .75rem; line-height: 1.6; text-align: center; }
 .setup-steps { display: grid; gap: 1.4rem; padding: 0; margin: 2.25rem 0 0; list-style: none; }
 .setup-steps li { display: grid; grid-template-columns: 1.7rem 1fr; gap: .4rem 1rem; border-top: 1px solid var(--line); padding-top: 1.25rem; }
 .step-number { padding-top: .2rem; font-size: .75rem; color: var(--accent); }
 .setup-steps h3 { font-size: 1.13rem; }
 .setup-steps p { grid-column: 2; color: var(--muted); font-size: .95rem; line-height: 1.8; }
-.requirements { display: grid; grid-template-columns: 1fr 2fr; gap: 3rem; margin-top: 3.5rem; padding: 1.8rem 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
-.requirements h3 { font-size: .9rem; line-height: 1.8; }
+.requirements { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 1.5rem; margin-top: 3.5rem; padding: 1.8rem 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.requirements h3 { color: var(--connection); font-size: .9rem; line-height: 1.8; }
 .requirements p { font-size: .9rem; line-height: 1.8; }
 .requirements p span { margin: 0 .75rem; color: var(--accent); }
 .requirements p + p { margin-top: .4rem; color: var(--muted); max-width: 44rem; }
