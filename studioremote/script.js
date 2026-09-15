@@ -5,11 +5,16 @@
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   let wantsPlayback = !reducedMotion.matches;
   let inView = true;
+  const connection = document.querySelector('.product-connection');
+  const updateConnection = () => {
+    connection.classList.toggle('is-paused', !inView || document.hidden || !wantsPlayback);
+  };
 
   const updateControl = () => {
     const playing = !video.paused && !video.ended;
     icon.setAttribute('d', playing ? 'M4 3H6V13H4Z M10 3H12V13H10Z' : 'M5 3 13 8 5 13Z');
     control.setAttribute('aria-label', playing ? 'Pause background video' : 'Play background video');
+    updateConnection();
   };
 
   const play = async () => {
@@ -47,23 +52,27 @@
   });
   reducedMotion.addEventListener('change', () => {
     wantsPlayback = !reducedMotion.matches;
+    updateConnection();
     if (!wantsPlayback) {
       video.pause();
       video.classList.remove('is-ready');
     } else if (inView && !document.hidden) play();
   });
   document.addEventListener('visibilitychange', () => {
+    updateConnection();
     if (document.hidden) video.pause();
     else if (wantsPlayback && inView) play();
   });
   if ('IntersectionObserver' in window) {
     new IntersectionObserver(([entry]) => {
       inView = entry.isIntersecting;
+      updateConnection();
       if (!inView) video.pause();
       else if (wantsPlayback && !document.hidden) play();
     }, { threshold: 0 }).observe(document.querySelector('.hero'));
   }
 
   control.hidden = false;
+  updateConnection();
   if (wantsPlayback && !document.hidden) play();
 })();
