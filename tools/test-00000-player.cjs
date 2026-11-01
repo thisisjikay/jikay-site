@@ -18,11 +18,13 @@ async function setup(playlist, options = {}) {
     constructor(id) {
       super();
       this.id = id;
-      this.disabled = ["previous-track", "next-track", "toggle-playback"].includes(id);
+      this.disabled = ["previous-track", "next-track", "toggle-playback", "song-position"].includes(id);
       this.dataset = {};
       this.attributes = new Map();
       this.textContent = "";
       this.hidden = false;
+      this.value = "0";
+      this.style = { setProperty: (name, value) => this.attributes.set(name, value) };
     }
     setAttribute(name, value) { this.attributes.set(name, value); }
     removeAttribute(name) { this.attributes.delete(name); if (name === "src") this.src = ""; }
@@ -35,6 +37,7 @@ async function setup(playlist, options = {}) {
       this.paused = true;
       this.ended = false;
       this.currentTime = 0;
+      this.duration = NaN;
       this.src = "";
       this.error = null;
       this.loadVersion = 0;
@@ -48,6 +51,7 @@ async function setup(playlist, options = {}) {
     load() {
       this.loadVersion += 1;
       this.currentTime = 0;
+      this.duration = options.duration ?? NaN;
       this.paused = true;
       this.ended = false;
       this.error = null;
@@ -78,7 +82,7 @@ async function setup(playlist, options = {}) {
       return Promise.resolve();
     }
   }
-  for (const id of ["track-title", "player-status", "track-announcement", "previous-track", "toggle-playback", "next-track"]) {
+  for (const id of ["track-title", "player-status", "track-announcement", "previous-track", "toggle-playback", "next-track", "scrubber", "song-position"]) {
     nodes.set(id, new Element(id));
   }
   for (const id of ["music", "background-video"]) nodes.set(id, new Media(id));
@@ -115,6 +119,58 @@ const songs = {
 };
 
 const tests = [
+  ["progress waits for a known duration, follows media time and resets", async () => {
+    const page = await setup(songs);
+    const slider = page.get("song-position");
+    assert.ok(slider.disabled);
+    page.get("music").duration = 120;
+    page.get("music").currentTime = 30;
+    page.get("music").dispatchEvent(new Event("durationchange"));
+    assert.equal(slider.disabled, false);
+    assert.equal(slider.value, "30");
+    assert.equal(page.get("scrubber").attributes.get("--progress"), "25%");
+    assert.equal(slider.attributes.get("aria-valuetext"), "0:30 of 2:00");
+    await page.click("next-track");
+    assert.equal(slider.value, "0");
+    assert.ok(slider.disabled);
+  }],
+  ["scrubbing previews during drag then seeks only the song on release", async () => {
+    const page = await setup(songs, { duration: 120 });
+    const slider = page.get("song-position");
+    page.get("music").currentTime = 30;
+    page.get("background-video").currentTime = 4;
+    slider.dispatchEvent(new Event("pointerdown"));
+    slider.value = "90";
+    slider.dispatchEvent(new Event("input"));
+    assert.equal(page.get("music").currentTime, 30);
+    assert.equal(page.get("scrubber").attributes.get("--progress"), "75%");
+    page.get("music").currentTime = 31;
+    page.get("music").dispatchEvent(new Event("timeupdate"));
+    assert.equal(slider.value, "90", "Playback must not fight the drag position");
+    slider.dispatchEvent(new Event("change"));
+    assert.equal(page.get("music").currentTime, 90);
+    assert.equal(page.get("music").paused, false);
+    assert.equal(page.get("background-video").currentTime, 4);
+  }],
+  ["paused seeking stays paused and stale scrubs cannot seek the next track", async () => {
+    const page = await setup(songs, { duration: 120 });
+    const slider = page.get("song-position");
+    await page.click("toggle-playback");
+    slider.value = "45";
+    slider.dispatchEvent(new Event("input"));
+    slider.dispatchEvent(new Event("change"));
+    assert.equal(page.get("music").currentTime, 45);
+    assert.ok(page.get("music").paused);
+    slider.dispatchEvent(new Event("pointerdown"));
+    slider.value = "80";
+    slider.dispatchEvent(new Event("input"));
+    await page.click("next-track");
+    slider.value = "80";
+    slider.dispatchEvent(new Event("change"));
+    assert.equal(page.get("music").currentTime, 0);
+    assert.ok(page.get("music").paused);
+    assert.equal(slider.value, "0");
+  }],
   ["empty and unavailable playlists disable playback", async () => {
     for (const [playlist, options, expected] of [
       [{ tracks: [] }, {}, "No tracks available"],

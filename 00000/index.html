@@ -63,6 +63,10 @@ FORM: The user-specified single-screen composition and approved CRT typography p
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m2 5 9 7-9 7zm11 0 9 7-9 7z" /></svg>
         </button>
       </div>
+      <div id="scrubber" class="scrubber">
+        <div class="scrubber__track" aria-hidden="true"><span class="scrubber__fill"></span></div>
+        <input id="song-position" class="scrubber__input" type="range" min="0" max="1" step="1" value="0" aria-label="Song position" aria-valuetext="Position unavailable" disabled />
+      </div>
       <audio id="music" preload="metadata"></audio>
       <p id="track-announcement" class="visually-hidden" aria-live="polite" aria-atomic="true"></p>
     </main>

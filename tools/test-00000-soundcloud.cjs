@@ -10,7 +10,7 @@ const flush = async () => { for (let n = 0; n < 30; n++) await Promise.resolve()
 async function setup({ blocked = false, incomplete = false, delayMetadata = false } = {}) {
   const listeners = new Map();
   const frames = [];
-  const events = { READY: "ready", PLAY: "play", PLAY_PROGRESS: "progress", LOAD_PROGRESS: "load", PAUSE: "pause", FINISH: "finish", ERROR: "error" };
+  const events = { READY: "ready", PLAY: "play", PLAY_PROGRESS: "progress", LOAD_PROGRESS: "load", SEEK: "seek", PAUSE: "pause", FINISH: "finish", ERROR: "error" };
   const fullSounds = [
     { id: 42, title: "First", duration: 100000, permalink: "first", permalink_url: "https://soundcloud.com/artist/first", user: { username: "Artist" } },
     { id: 84, title: "Second", duration: 120000, permalink: "second", permalink_url: "https://soundcloud.com/artist/second", user: { username: "Artist" } },
@@ -57,6 +57,37 @@ async function setup({ blocked = false, incomplete = false, delayMetadata = fals
 }
 
 (async () => {
+  {
+    const { audio, widget, emit, events } = await setup();
+    audio.src = "soundcloud:42";
+    audio.load();
+    assert.equal(audio.duration, 100);
+    audio.currentTime = 30;
+    assert.equal(widget.seeks.at(-1), 30000, "SoundCloud seeks use milliseconds");
+    assert.ok(audio.paused, "Seeking a paused track must not start playback");
+    emit(events.SEEK, { currentPosition: 30000, relativePosition: 0.3 });
+    await flush();
+    assert.equal(audio.currentTime, 30);
+    await audio.play();
+    audio.currentTime = 80;
+    emit(events.PLAY_PROGRESS, { currentPosition: 31000, relativePosition: 0.31 });
+    await flush();
+    assert.equal(audio.currentTime, 80, "Queued old progress must not undo the seek preview");
+    emit(events.SEEK, { currentPosition: 80000, relativePosition: 0.8 });
+    await flush();
+    assert.equal(audio.currentTime, 80);
+    assert.equal(audio.paused, false);
+    audio.pause();
+    audio.currentTime = 200;
+    assert.equal(widget.seeks.at(-1), 100000);
+    audio.currentTime = -10;
+    assert.equal(widget.seeks.at(-1), 0);
+    audio.src = "soundcloud:84";
+    audio.load();
+    assert.equal(audio.currentTime, 0);
+    assert.equal(audio.duration, 120);
+    console.log("PASS seeking units, pause state, stale progress, bounds and track reset");
+  }
   {
     const { audio, tracks } = await setup({ incomplete: true });
     assert.equal(tracks[1].title, "Track 2", "Incomplete entries must never produce blank titles");
@@ -171,5 +202,5 @@ async function setup({ blocked = false, incomplete = false, delayMetadata = fals
     assert.equal(audio.pending, null);
     console.log("PASS cancelling blocked playback clears the pending attempt and timer");
   }
-  console.log("7 SoundCloud scenarios passed.");
+  console.log("8 SoundCloud scenarios passed.");
 })().catch(error => { console.error(error); process.exitCode = 1; });

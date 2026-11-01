@@ -68,6 +68,29 @@ export async function createSoundCloudSource(config) {
     relativePosition = 0;
     autoplay = false;
     metadataPending = false;
+    seekTarget = null;
+    seekDeadline = 0;
+
+    get currentTime() {
+      return this.position / 1000;
+    }
+
+    set currentTime(seconds) {
+      const duration = this.duration;
+      if (!Number.isFinite(seconds) || !Number.isFinite(duration) || duration <= 0) return;
+      this.position = Math.max(0, Math.min(duration, seconds)) * 1000;
+      this.relativePosition = this.position / (duration * 1000);
+      this.seekTarget = this.position;
+      this.seekDeadline = Date.now() + 5000;
+      this.ended = false;
+      widget.seekTo(this.position);
+      this.dispatchEvent(new Event("timeupdate"));
+    }
+
+    get duration() {
+      const milliseconds = Number(sounds[this.expectedIndex]?.duration);
+      return Number.isFinite(milliseconds) && milliseconds > 0 ? milliseconds / 1000 : NaN;
+    }
 
     constructor() {
       super();
@@ -106,8 +129,10 @@ export async function createSoundCloudSource(config) {
       }));
       widget.bind(events.PLAY_PROGRESS, data => current(() => {
         if (!this.wanted || !this.confirmedPlayback) return;
-        this.position = Number(data.currentPosition) || 0;
-        this.relativePosition = Number(data.relativePosition) || 0;
+        this.updatePosition(data);
+      }));
+      widget.bind(events.SEEK, data => current(() => {
+        if (this.updatePosition(data)) this.dispatchEvent(new Event("seeked"));
       }));
       widget.bind(events.FINISH, () => {
         const duration = Number(sounds[this.expectedIndex]?.duration);
@@ -131,9 +156,23 @@ export async function createSoundCloudSource(config) {
       widget.bind(events.LOAD_PROGRESS, () => this.refreshMetadata());
     }
 
+    updatePosition(data) {
+      const position = Number(data.currentPosition);
+      if (!Number.isFinite(position) || position < 0) return false;
+      // Ignore queued pre-seek progress until SoundCloud confirms the new position.
+      if (this.seekTarget !== null && Date.now() < this.seekDeadline
+        && Math.abs(position - this.seekTarget) > 1500) return false;
+      this.seekTarget = null;
+      this.position = position;
+      this.relativePosition = Number(data.relativePosition) || 0;
+      this.dispatchEvent(new Event("timeupdate"));
+      return true;
+    }
+
     refreshMetadata() {
       const selected = sounds[this.expectedIndex];
-      if (!selected || selected.title?.trim() || this.metadataPending) return;
+      const complete = selected?.title?.trim() && Number(selected.duration) > 0;
+      if (!selected || complete || this.metadataPending) return;
       const version = this.version;
       const soundIndex = this.expectedIndex;
       this.metadataPending = true;
@@ -167,6 +206,7 @@ export async function createSoundCloudSource(config) {
       this.position = 0;
       this.relativePosition = 0;
       this.metadataPending = false;
+      this.seekTarget = null;
       this.expectedIndex = sounds.findIndex(sound => `soundcloud:${sound.id}` === this.src);
       widget.skip(this.expectedIndex);
       widget.seekTo(0);

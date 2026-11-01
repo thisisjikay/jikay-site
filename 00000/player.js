@@ -5,6 +5,8 @@ const announcement = document.querySelector("#track-announcement");
 const previous = document.querySelector("#previous-track");
 const toggle = document.querySelector("#toggle-playback");
 const next = document.querySelector("#next-track");
+const scrubber = document.querySelector("#scrubber");
+const songPosition = document.querySelector("#song-position");
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
 let audio = document.querySelector("#music");
@@ -18,6 +20,8 @@ let intendedPlaying = false;
 let fallbackVideo = "static.mp4";
 let titleStyle = "original";
 let backgroundFile = fallbackVideo;
+let scrubbing = false;
+let scrubSelection = null;
 const failedTracks = new Set();
 
 function showStatus(message = "") {
@@ -27,6 +31,31 @@ function showStatus(message = "") {
 function displayTitle(originalTitle) {
   if (titleStyle !== "filename") return originalTitle;
   return `${originalTitle.trim().replace(/\.mp3$/i, "").toLowerCase().replace(/\s+/g, "_")}.mp3`;
+}
+
+function formatTime(seconds) {
+  const total = Math.max(0, Math.floor(seconds));
+  return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, "0")}`;
+}
+
+function paintProgress(position, duration) {
+  const fraction = duration > 0 ? Math.max(0, Math.min(1, position / duration)) : 0;
+  scrubber.style.setProperty("--progress", `${fraction * 100}%`);
+  songPosition.setAttribute("aria-valuetext", duration > 0
+    ? `${formatTime(position)} of ${formatTime(duration)}`
+    : "Position unavailable");
+}
+
+function updateProgress() {
+  const duration = audio.duration;
+  const available = tracks.length > 0 && Number.isFinite(duration) && duration > 0 && !audio.error;
+  songPosition.disabled = !available;
+  songPosition.max = available ? String(duration) : "1";
+  if (!scrubbing) {
+    const position = Number.isFinite(audio.currentTime) ? audio.currentTime : 0;
+    songPosition.value = available ? String(Math.max(0, Math.min(duration, position))) : "0";
+  }
+  paintProgress(Number(songPosition.value), available ? duration : 0);
 }
 
 function updateControls() {
@@ -109,6 +138,7 @@ function handleAudioFailure(version) {
     : "This track is unavailable. Try another track.");
   toggle.disabled = true;
   updateControls();
+  updateProgress();
 }
 
 async function play() {
@@ -146,6 +176,7 @@ function selectTrack(trackIndex, shouldPlay, message = "") {
   audio.pause();
 
   index = (trackIndex + tracks.length) % tracks.length;
+  scrubbing = false;
   intendedPlaying = shouldPlay;
   const track = tracks[index];
   let trackVideo = track.video || fallbackVideo;
@@ -201,10 +232,14 @@ function selectTrack(trackIndex, shouldPlay, message = "") {
   audio.addEventListener("error", () => {
     if (audio.error) handleAudioFailure(version);
   }, options);
+  for (const event of ["loadedmetadata", "durationchange", "timeupdate", "seeked"]) {
+    audio.addEventListener(event, updateProgress, options);
+  }
 
   audio.src = new URL(track.file, mediaRoot).href;
   audio.autoplay = shouldPlay;
   audio.load();
+  updateProgress();
   setVideo(trackVideo);
   updateControls();
   if (shouldPlay) void play();
@@ -223,6 +258,39 @@ toggle.addEventListener("click", () => {
   if (intendedPlaying) pause();
   else void play();
 });
+
+songPosition.addEventListener("pointerdown", () => { scrubSelection = selection; });
+songPosition.addEventListener("input", () => {
+  if (scrubSelection === null) scrubSelection = selection;
+  if (scrubSelection !== selection) { updateProgress(); return; }
+  scrubbing = true;
+  paintProgress(Number(songPosition.value), audio.duration);
+});
+songPosition.addEventListener("change", () => {
+  const position = Number(songPosition.value);
+  const version = scrubSelection;
+  scrubbing = false;
+  scrubSelection = null;
+  if (!songPosition.disabled && (version === null || version === selection)) {
+    try {
+      // The video is an independent loop; seek only the song and keep its pause state.
+      audio.currentTime = position;
+    } catch {
+      showStatus("Couldn’t seek. Try again.");
+    }
+  }
+  updateProgress();
+});
+songPosition.addEventListener("pointerup", () => {
+  if (!scrubbing) scrubSelection = null;
+});
+for (const event of ["pointercancel", "blur"]) {
+  songPosition.addEventListener(event, () => {
+    scrubbing = false;
+    scrubSelection = null;
+    updateProgress();
+  });
+}
 
 reducedMotion.addEventListener("change", () => setVideo(backgroundFile));
 

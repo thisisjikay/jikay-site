@@ -13,6 +13,15 @@ audio files and video mappings keep their original names.
 To revert, change this one setting to `"titleStyle": "original"` and refresh the page.
 Removing the setting also restores the original titles.
 
+## Progress and seeking
+
+The white line across the bottom shows the current song position. Tap or drag its
+44px-high touch area to choose a position; dragging previews the position and seeks
+when released. Keyboard users can focus “Song position” and use the arrow keys,
+Home or End. Seeking preserves the song's playing or paused state and leaves its
+independently looping video alone. The bar resets on track changes and stays disabled
+until the track duration is known.
+
 ## Update the SoundCloud playlist
 
 Add, remove or reorder songs in the same SoundCloud playlist. The page reads its current

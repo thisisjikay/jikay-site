@@ -24,6 +24,10 @@ Choose a random initial song, then play ordered tracks with wraparound. Pausing 
 music and video together. Browser-blocked autoplay has a one-tap play fallback.
 Songs can specify their own muted looping videos; missing or failed clips use shared
 CRT static without interrupting audio. Reduced motion uses a still poster instead.
+The requested bottom scrub bar uses a thin white progress line, a 44px native range
+hit area and safe-area clearance. Tap/drag or keyboard seeking changes only song
+position, preserves pause state, and resets on track changes. Keep transport controls
+clear of its hit area; metadata and social preview wording remain untouched.
 
 Media lives in `assets/00000/`, with one hand-edited configuration. The user subsequently
 supplied a private 00000 SoundCloud playlist, now the active audio source. Use the official
@@ -32,8 +36,8 @@ top-right SoundCloud link and requested autoplay on load. Enable widget autoplay
 preserve start intent when selecting a song; retain the play fallback for browser policy.
 Local-file playback remains available by removing the soundcloud config.
 Optional clips map to SoundCloud song permalinks or IDs. The original six-second static loop,
-matching poster and reproducible generation script are included. No invented tracks,
-progress bar or visible playlist.
+matching poster and reproducible generation script are included. No invented tracks
+or visible playlist.
 
 Verify real browser playback, keyboard controls, desktop/mobile/landscape layout,
 long titles, rapid switching, failed audio/video, reduced motion and empty playlists.
