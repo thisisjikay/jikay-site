@@ -1,10 +1,14 @@
 {
   "fallbackVideo": "static.mp4",
+  "titleStyle": "filename",
   "soundcloud": {
     "playlistId": 2322937068,
     "secretToken": "s-hImvVYjkS1I",
     "playlistUrl": "https://soundcloud.com/jikay/sets/00000a1/s-hImvVYjkS1I",
     "videos": {
+      "2430214545": "video/last-of-us-loop.mp4",
+      "2430218802": "video/get-2-u-loop.mp4",
+      "2430206916": "video/strange-places-loop.mp4",
       "2430205179": "video/lost-loop.mp4?v=3",
       "cold-winter": "video/cold-winter-loop.mp4",
       "2430220608": "video/four-loop.mp4?v=2"

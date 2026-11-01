@@ -67,11 +67,12 @@ def main():
 
     with tempfile.TemporaryDirectory(prefix=f"{args.name}-") as temporary:
         clean_loop = Path(temporary) / "footage-loop.mkv"
-        prepare = "fps=24,scale=640:360,setsar=1,format=gray"
+        prepare = ("fps=24,scale=640:360:force_original_aspect_ratio=increase,"
+                   "crop=640:360,setsar=1,format=gray")
         stabilization = ""
         if args.stabilize:
             transforms = Path(temporary) / "camera.trf"
-            print("Locking the window framing to remove the camera shift…", flush=True)
+            print("Stabilizing the framing to remove camera shift…", flush=True)
             subprocess.run(common + [
                 "-ss", str(args.start), "-i", str(args.source), "-an",
                 "-vf", f"{prepare},trim=end_frame={source_frames},"

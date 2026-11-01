@@ -3,6 +3,16 @@
 The listening page is at `/00000/`. It currently streams the **00000 SoundCloud playlist**.
 This folder holds its configuration, optional song videos and the shared CRT background.
 
+## Title style experiment
+
+`"titleStyle": "filename"` in `playlist.json` displays lowercase titles with underscores
+and an `.mp3` suffix: `Lost` → `lost.mp3`, `Cold Winter` → `cold_winter.mp3`.
+This only changes how titles appear on the page and browser tab; SoundCloud titles,
+audio files and video mappings keep their original names.
+
+To revert, change this one setting to `"titleStyle": "original"` and refresh the page.
+Removing the setting also restores the original titles.
+
 ## Update the SoundCloud playlist
 
 Add, remove or reorder songs in the same SoundCloud playlist. The page reads its current
@@ -31,7 +41,7 @@ URL name (the last part of its public URL, before any private `/s-…` token):
 }
 ```
 
-These are example filenames. Omit a song from this object to use CRT static.
+This shows the mapping format. Omit a song from this object to use CRT static.
 The numeric SoundCloud track ID is also accepted as a key. A failed video automatically
 falls back to static without interrupting its song.
 
@@ -85,6 +95,46 @@ The version query refreshes previously cached footage. Its SoundCloud track ID i
 python3 tools/generate-00000-video.py "/path/to/MVI 1419.mp4" \
   --name lost --start 12 --duration 7.5 --overlap 2.5 --signal 0.64 --gamma 1.35 \
   --no-tracking --stabilize
+```
+
+Strange Places uses `video/strange-places-loop.mp4`: a silent 5.25-second,
+1280 × 720 monochrome loop from the misty waterfront footage in `1101 (1).mp4`.
+The framing is stabilized and the ends use a two-second cosine dissolve.
+Scanlines, television snow and a vignette match the other backgrounds; tracking
+wobble, tearing and rolling bars are disabled. The mix uses 64% signal and gamma 1.35.
+Its SoundCloud track ID is `2430206916`; the still is `video/strange-places-poster.jpg`.
+
+```sh
+python3 tools/generate-00000-video.py "/path/to/1101 (1).mp4" \
+  --name strange-places --duration 7.25 --signal 0.64 --gamma 1.35 \
+  --no-tracking --stabilize
+```
+
+Get 2 U uses `video/get-2-u-loop.mp4`: a silent 9.75-second, 1280 × 720 monochrome
+loop from the party footage in `1101 (1)(1).mp4`. A two-second cosine dissolve
+joins the ends. Scanlines, television snow and a vignette match the listening room;
+tracking wobble, tearing and rolling bars are disabled. The brighter footage uses
+45% signal / 55% snow and gamma 1. The source is cropped to fill 16:9 without
+stretching; the original dancing and camera movement are preserved.
+Its SoundCloud track ID is `2430218802`; the still is `video/get-2-u-poster.jpg`.
+
+```sh
+python3 tools/generate-00000-video.py "/path/to/1101 (1)(1).mp4" \
+  --name get-2-u --duration 11.75 --signal 0.45 --gamma 1 --no-tracking
+```
+
+Last Of Us uses `video/last-of-us-loop.mp4`: a silent 4.5-second, 1280 × 720
+monochrome loop from `Strumble Head Lighthouse at night.mp4`. The lighthouse beam
+peaks 2.25 seconds apart; the loop spans two full beam cycles, with a 0.25-second
+cosine dissolve across the join. Scanlines, television snow and a vignette match
+the other backgrounds, without tracking wobble, tearing or rolling bars.
+The mix uses 64% signal and gamma 1.35. Its SoundCloud track ID is `2430214545`;
+the matching still is `video/last-of-us-poster.jpg`.
+
+```sh
+python3 tools/generate-00000-video.py "/path/to/Strumble Head Lighthouse at night.mp4" \
+  --name last-of-us --duration 4.75 --overlap 0.25 --signal 0.64 --gamma 1.35 \
+  --no-tracking
 ```
 
 ## Use local audio files instead
