@@ -16,11 +16,17 @@ let videoSelection = 0;
 let audioEvents = new AbortController();
 let intendedPlaying = false;
 let fallbackVideo = "static.mp4";
+let titleStyle = "original";
 let backgroundFile = fallbackVideo;
 const failedTracks = new Set();
 
 function showStatus(message = "") {
   status.textContent = message;
+}
+
+function displayTitle(originalTitle) {
+  if (titleStyle !== "filename") return originalTitle;
+  return `${originalTitle.trim().replace(/\.mp3$/i, "").toLowerCase().replace(/\s+/g, "_")}.mp3`;
 }
 
 function updateControls() {
@@ -145,8 +151,9 @@ function selectTrack(trackIndex, shouldPlay, message = "") {
   let trackVideo = track.video || fallbackVideo;
   const updateDetails = () => {
     if (version !== selection) return;
-    title.textContent = track.title;
-    document.title = `${track.title} — 00000`;
+    const styledTitle = displayTitle(track.title);
+    title.textContent = styledTitle;
+    document.title = `${styledTitle} — 00000`;
     announcement.textContent = `Selected: ${track.title}, by 00000`;
   };
   updateDetails();
@@ -228,6 +235,7 @@ async function initialise() {
     const response = await fetch(new URL("playlist.json", mediaRoot), { cache: "no-cache" });
     if (!response.ok) throw new Error("Playlist unavailable");
     const playlist = await response.json();
+    titleStyle = playlist.titleStyle === "filename" ? "filename" : "original";
     if (typeof playlist.fallbackVideo === "string" && playlist.fallbackVideo.trim()) {
       fallbackVideo = playlist.fallbackVideo;
     }
