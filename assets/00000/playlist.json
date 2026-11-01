@@ -4,7 +4,11 @@
     "playlistId": 2322937068,
     "secretToken": "s-hImvVYjkS1I",
     "playlistUrl": "https://soundcloud.com/jikay/sets/00000a1/s-hImvVYjkS1I",
-    "videos": {}
+    "videos": {
+      "2430205179": "video/lost-loop.mp4?v=3",
+      "cold-winter": "video/cold-winter-loop.mp4",
+      "2430220608": "video/four-loop.mp4?v=2"
+    }
   },
   "tracks": []
 }

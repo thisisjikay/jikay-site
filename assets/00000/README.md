@@ -35,6 +35,58 @@ These are example filenames. Omit a song from this object to use CRT static.
 The numeric SoundCloud track ID is also accepted as a key. A failed video automatically
 falls back to static without interrupting its song.
 
+Cold Winter uses `video/cold-winter-loop.mp4`: a silent 21.5-second, 1280 × 720 loop
+made from the supplied driving footage. A two-second cosine dissolve joins the end
+back to the beginning while the road keeps moving forward. The monochrome picture
+is mixed at 36% signal / 64% television snow, with scanlines, rolling interference,
+horizontal tracking displacement and the shared static's vignette and grain scale.
+Effects are baked into the MP4, so playback needs no canvas or extra browser effects.
+The matching still is `video/cold-winter-poster.jpg`; reduced motion continues to use
+the listening room's shared static poster.
+
+To recreate it from the original 23.7-second source (the first 23.5 seconds are used):
+
+```sh
+python3 tools/generate-cold-winter-loop.py "/path/to/Cold Winter Placeholder.mp4"
+```
+
+Pass `--ffmpeg /path/to/ffmpeg` for a standalone binary. Adjust `--signal 0.36` to
+change how much driving footage shows through. The source's audio is discarded.
+
+Four uses `video/four-loop.mp4?v=2`: a silent 25-second, 1280 × 720 monochrome loop
+from the supplied star-field and planet clip. It uses the same two-second dissolve,
+scanlines, television snow and vignette as Cold Winter, with picture wobble,
+horizontal tearing and rolling tracking bars disabled. The darker
+footage uses 64% signal / 36% snow and a gamma lift of 1.35 to retain the stars and
+the planet's edge. Its matching still is `video/four-poster.jpg`. The mapping uses
+Four's SoundCloud track ID (`2430220608`) so it also works before its title and URL
+name have finished loading from SoundCloud.
+
+To recreate Four from the supplied 27.42-second source:
+
+```sh
+python3 tools/generate-00000-video.py "/path/to/13442864_1920_1080_60fps.mp4" \
+  --name four --duration 27 --signal 0.64 --gamma 1.35 --no-tracking
+```
+
+The shared generator also accepts `--ffmpeg /path/to/ffmpeg`. Cold Winter's original
+command remains available and uses the shared generator's original default settings.
+
+Lost uses `video/lost-loop.mp4?v=3`: a silent five-second, 1280 × 720 monochrome loop
+from the steady aircraft-window section of `MVI 1419.mp4` (source time 12–19.5s).
+The framing is stabilized before a 2.5-second cosine dissolve joins the ends.
+Fixed scanlines, television snow and the vignette retain the VHS treatment.
+Picture wobble, horizontal tearing and rolling tracking bars are disabled.
+The mix uses 64% signal and gamma 1.35.
+The version query refreshes previously cached footage. Its SoundCloud track ID is
+`2430205179`; the matching still is `video/lost-poster.jpg`.
+
+```sh
+python3 tools/generate-00000-video.py "/path/to/MVI 1419.mp4" \
+  --name lost --start 12 --duration 7.5 --overlap 2.5 --signal 0.64 --gamma 1.35 \
+  --no-tracking --stabilize
+```
+
 ## Use local audio files instead
 
 Remove the `soundcloud` section from `playlist.json` to use the local `tracks` list instead.
