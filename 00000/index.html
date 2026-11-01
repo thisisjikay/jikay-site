@@ -1,0 +1,65 @@
+<!doctype html>
+<!--
+THESIS: A listening room tuned between channels; the music and television snow fill the screen.
+OWN-WORLD: Monochrome CRT texture, white phosphor lettering, solid white circular transport controls.
+STORY: Arrive on a random song, listen, move through the collection, or return home.
+FIRST VIEWPORT: Full-bleed video, title at the exact centre, a small back link top left, transport bottom centre.
+FORM: The user-specified single-screen composition and approved CRT typography preview; no concept seed required.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="description" content="Music by 00000. Tune in and listen." />
+    <meta name="theme-color" content="#090909" />
+    <title>00000 — JiKay</title>
+    <link rel="canonical" href="https://jikay.co.uk/00000/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="en_GB" />
+    <meta property="og:site_name" content="JiKay" />
+    <meta property="og:title" content="00000" />
+    <meta property="og:description" content="Music by 00000. Tune in and listen." />
+    <meta property="og:url" content="https://jikay.co.uk/00000/" />
+    <meta property="og:image" content="https://jikay.co.uk/assets/00000/static-poster.jpg" />
+    <meta property="og:image:alt" content="Monochrome CRT television static" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="00000" />
+    <meta name="twitter:description" content="Music by 00000. Tune in and listen." />
+    <meta name="twitter:image" content="https://jikay.co.uk/assets/00000/static-poster.jpg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="../assets/icons/favicon-32.png" />
+    <link rel="apple-touch-icon" href="../assets/icons/apple-touch-icon.png" />
+    <link rel="preload" href="../assets/fonts/VT323-Regular.ttf" as="font" type="font/ttf" crossorigin />
+    <link rel="stylesheet" href="styles.css" />
+    <script type="module" src="player.js"></script>
+  </head>
+  <body>
+    <main class="listening-room" aria-label="00000 music player">
+      <div class="backdrop" aria-hidden="true">
+        <video id="background-video" muted loop playsinline preload="none" poster="../assets/00000/static-poster.jpg" disablepictureinpicture></video>
+      </div>
+
+      <a class="back-link" href="../"><span aria-hidden="true">&lt;</span> back</a>
+
+      <div class="now-playing">
+        <h1 id="track-title">00000</h1>
+        <p id="player-status" class="player-status" role="status" aria-live="polite">Tuning in…</p>
+        <noscript><p class="player-status">Enable JavaScript to listen.</p></noscript>
+      </div>
+
+      <div class="transport" role="group" aria-label="Playback controls">
+        <button id="previous-track" class="transport-button" type="button" aria-label="Previous track" disabled>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5v14L2 12zm11 0v14l-9-7z" /></svg>
+        </button>
+        <button id="toggle-playback" class="transport-button transport-button--play" type="button" aria-label="Play" disabled>
+          <svg class="play-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m7 3 15 9-15 9z" /></svg>
+          <svg class="pause-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h5v16H5zm9 0h5v16h-5z" /></svg>
+        </button>
+        <button id="next-track" class="transport-button" type="button" aria-label="Next track" disabled>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m2 5 9 7-9 7zm11 0 9 7-9 7z" /></svg>
+        </button>
+      </div>
+      <audio id="music" preload="metadata"></audio>
+      <p id="track-announcement" class="visually-hidden" aria-live="polite" aria-atomic="true"></p>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,237 @@
+@font-face {
+  font-family: "VT323";
+  src: url("../assets/fonts/VT323-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+:root {
+  color-scheme: dark;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  color: #fff;
+  background: #090909;
+  font-synthesis: none;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-width: 320px;
+}
+
+.listening-room {
+  position: relative;
+  display: grid;
+  min-height: 100vh;
+  min-height: 100svh;
+  padding: 6rem 1.5rem 10rem;
+  isolation: isolate;
+}
+
+.backdrop,
+.backdrop::after,
+.backdrop video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.backdrop {
+  z-index: -1;
+  overflow: hidden;
+  background: #090909 url("../assets/00000/static-poster.jpg") center / cover no-repeat;
+}
+
+.backdrop video {
+  object-fit: cover;
+}
+
+.backdrop::after {
+  content: "";
+  background: rgba(0, 0, 0, 0.38);
+}
+
+.back-link {
+  position: absolute;
+  top: max(1.25rem, env(safe-area-inset-top));
+  left: max(1.5rem, env(safe-area-inset-left));
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.25rem 0.35rem;
+  color: #fff;
+  font-size: 0.875rem;
+  text-decoration: none;
+  text-shadow: 0 1px 6px #000;
+}
+
+.back-link:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.3em;
+}
+
+.soundcloud-audio {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  border: 0;
+  clip-path: inset(50%);
+  overflow: hidden;
+}
+
+.now-playing {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: min(calc(100% - 3rem), 68rem);
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.now-playing h1 {
+  margin: 0;
+  font-family: "VT323", "Courier New", monospace;
+  font-size: clamp(2.75rem, 6vw, 5.5rem);
+  font-weight: 400;
+  line-height: 1.05;
+  letter-spacing: 0.045em;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+  text-shadow: 0 0 3px rgba(255, 255, 255, 0.5), 0 2px 12px #000;
+}
+
+.player-status {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  margin: 1.25rem 0 0;
+  color: #fff;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  text-shadow: 0 1px 6px #000;
+}
+
+.transport {
+  position: absolute;
+  bottom: max(2rem, calc(env(safe-area-inset-bottom) + 1rem));
+  left: 50%;
+  display: flex;
+  align-items: center;
+  gap: clamp(1rem, 3vw, 1.75rem);
+  transform: translateX(-50%);
+}
+
+.transport-button {
+  display: grid;
+  width: 3.5rem;
+  height: 3.5rem;
+  padding: 1rem;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: #fff;
+  color: #090909;
+  cursor: pointer;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.22);
+}
+
+.transport-button--play {
+  width: 4.25rem;
+  height: 4.25rem;
+  padding: 1.1rem;
+}
+
+.transport-button svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  fill: currentColor;
+}
+
+.transport-button:enabled:hover {
+  background: #dedede;
+}
+
+.transport-button:enabled:active {
+  transform: scale(0.95);
+}
+
+.transport-button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.transport-button .pause-icon,
+.transport-button[data-playing="true"] .play-icon {
+  display: none;
+}
+
+.transport-button[data-playing="true"] .pause-icon {
+  display: block;
+}
+
+a:focus-visible,
+button:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 6px;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@media (max-height: 32rem) {
+  .listening-room {
+    padding-top: 4rem;
+    padding-bottom: 6rem;
+  }
+
+  .now-playing {
+    top: 43%;
+  }
+
+  .now-playing h1 {
+    font-size: clamp(2rem, 6vh, 3.5rem);
+  }
+
+  .transport {
+    bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+
+  .transport-button {
+    width: 2.75rem;
+    height: 2.75rem;
+    padding: 0.75rem;
+  }
+
+  .transport-button--play {
+    width: 3.25rem;
+    height: 3.25rem;
+    padding: 0.9rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .backdrop video {
+    visibility: hidden;
+  }
+}

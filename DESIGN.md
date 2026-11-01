@@ -8,3 +8,4 @@ Documented from the existing homepage, beta pages and Studio Remote extension.
 - Marketing headings use large, simple Helvetica with modest negative tracking. Content below immersive openings uses quiet editorial sections rather than repeated cards.
 - Buttons and links have clear keyboard focus. Motion is limited to a subtle opening reveal and is removed for reduced-motion preferences.
 - Page-specific layouts and behavior belong in `.impeccable/surfaces/`; new pages preserve this identity without changing existing routes.
+- The `00000` alias has an intentionally distinct monochrome CRT listening room: full-bleed static or song video, locally served VT323 lettering with a restrained white phosphor glow, and solid white circular transport controls. Its surface brief owns playback and media behavior; other routes retain the JiKay identity.

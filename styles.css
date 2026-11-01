@@ -210,7 +210,7 @@ body {
   }
 }
 
-@media (max-width: 34rem) {
+@media (max-width: 44rem) {
   .hero {
     padding: 2rem 1.5rem;
   }
