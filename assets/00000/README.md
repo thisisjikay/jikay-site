@@ -221,6 +221,21 @@ python3 tools/generate-00000-static.py
 For a standalone FFmpeg binary, pass `--ffmpeg /path/to/ffmpeg`.
 The script uses Python's standard library, a fixed random seed and H.264 encoding.
 
+## Social preview image
+
+Social shares use `social-preview.jpg`: a 1200 × 630 still with `00000` centred in
+the same VT323 font and letter spacing as the listening page. It is separate from
+`static-poster.jpg`, so the listening page's background stays free of baked-in text.
+Open Graph and Twitter image metadata both point to this image.
+
+To regenerate it after changing the shared static poster:
+
+```sh
+python3 tools/generate-00000-social.py
+```
+
+Pass `--ffmpeg /path/to/ffmpeg` for a standalone binary.
+
 ## Font
 
 The page serves VT323 locally from `assets/fonts/VT323-Regular.ttf`.

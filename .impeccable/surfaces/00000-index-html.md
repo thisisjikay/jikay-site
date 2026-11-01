@@ -2,7 +2,7 @@
 version: 1
 slug: "00000-index-html"
 primary_target: "00000/index.html"
-related_targets: ["00000/styles.css","00000/player.js","00000/soundcloud.js"]
+related_targets: ["00000/styles.css","00000/player.js","00000/soundcloud.js","00000/title-fit.js"]
 ---
 
 # 00000 listening room
@@ -13,6 +13,9 @@ Primary target: `00000/index.html`; related styles and player script stay within
 The user approved a single full-viewport composition: original monochrome CRT video,
 centred white CRT title, three white circular transport controls bottom centre, and a
 small top-left back link. Use VT323 lettering and a restrained white phosphor glow.
+Keep track titles on one line. Measure and shrink long titles to fit after title updates,
+font loading and viewport changes; retain the CSS size for shorter titles. Exceptionally
+long names stop shrinking at 1rem and use ellipsis with their full text still accessible.
 The approved preview is the top CRT-text variant at
 `/Users/hotdamnstudio/.codex/generated_images/01a1967b-1002-77f1-b4b9-407aec4cd47b/exec-88e8a2d3-2bb3-4f66-8453-6a15f810aebe.png`.
 This route deliberately uses the 00000 CRT identity, preserving the rest of the site.
