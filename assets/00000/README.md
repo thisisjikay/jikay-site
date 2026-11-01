@@ -146,6 +146,18 @@ python3 tools/generate-00000-video.py "/path/to/Strumble Head Lighthouse at nigh
   --no-tracking
 ```
 
+Take It Back uses `video/take-it-back-loop.mp4`: a silent 9.25-second, 1280 × 720
+monochrome loop from `Cozy Campfire At Night.mp4`. A two-second cosine dissolve
+joins the ends. Scanlines, television snow and a vignette match the other
+backgrounds, without tracking wobble, tearing or rolling bars. The brighter fire
+footage uses 45% signal / 55% snow and gamma 1. Its confirmed SoundCloud track ID
+is `2430288555`; the matching still is `video/take-it-back-poster.jpg`.
+
+```sh
+python3 tools/generate-00000-video.py "/path/to/Cozy Campfire At Night.mp4" \
+  --name take-it-back --duration 11.25 --signal 0.45 --gamma 1 --no-tracking
+```
+
 ## Use local audio files instead
 
 Remove the `soundcloud` section from `playlist.json` to use the local `tracks` list instead.
