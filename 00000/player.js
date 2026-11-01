@@ -122,7 +122,7 @@ async function play() {
     if (error.name === "NotAllowedError") {
       intendedPlaying = false;
       video.pause();
-      showStatus("Press play to listen");
+      showStatus("press play");
       updateControls();
     } else if (error.name !== "AbortError") {
       handleAudioFailure(version);
@@ -142,9 +142,22 @@ function selectTrack(trackIndex, shouldPlay, message = "") {
   index = (trackIndex + tracks.length) % tracks.length;
   intendedPlaying = shouldPlay;
   const track = tracks[index];
-  title.textContent = track.title;
-  document.title = `${track.title} — 00000`;
-  announcement.textContent = `Selected: ${track.title}, by 00000`;
+  let trackVideo = track.video || fallbackVideo;
+  const updateDetails = () => {
+    if (version !== selection) return;
+    title.textContent = track.title;
+    document.title = `${track.title} — 00000`;
+    announcement.textContent = `Selected: ${track.title}, by 00000`;
+  };
+  updateDetails();
+  audio.addEventListener("loadedmetadata", () => {
+    updateDetails();
+    const updatedVideo = track.video || fallbackVideo;
+    if (updatedVideo !== trackVideo) {
+      trackVideo = updatedVideo;
+      setVideo(trackVideo);
+    }
+  }, options);
   showStatus(message);
   toggle.disabled = false;
 
@@ -165,7 +178,7 @@ function selectTrack(trackIndex, shouldPlay, message = "") {
     // Native media controls and operating-system interruptions can also pause it.
     // Preserve intent at natural endings so the next song still starts.
     if (!audio.ended && !audio.error) {
-      if (intendedPlaying) showStatus("Press play to listen");
+      if (intendedPlaying) showStatus("press play");
       intendedPlaying = false;
     }
     updateControls();
@@ -185,7 +198,7 @@ function selectTrack(trackIndex, shouldPlay, message = "") {
   audio.src = new URL(track.file, mediaRoot).href;
   audio.autoplay = shouldPlay;
   audio.load();
-  setVideo(track.video || fallbackVideo);
+  setVideo(trackVideo);
   updateControls();
   if (shouldPlay) void play();
 }

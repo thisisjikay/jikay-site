@@ -157,7 +157,7 @@ const tests = [
   }],
   ["autoplay rejection offers a usable play button", async () => {
     const page = await setup(songs, { blocked: true });
-    assert.equal(page.get("player-status").textContent, "Press play to listen");
+    assert.equal(page.get("player-status").textContent, "press play");
     assert.equal(page.get("toggle-playback").dataset.playing, "false");
     assert.ok(page.get("background-video").paused);
     page.unblock();

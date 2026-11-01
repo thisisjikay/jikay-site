@@ -7,14 +7,16 @@ const source = fs.readFileSync(path.join(__dirname, "../00000/soundcloud.js"), "
   .replace("export async function", "async function");
 const flush = async () => { for (let n = 0; n < 30; n++) await Promise.resolve(); };
 
-async function setup({ blocked = false } = {}) {
+async function setup({ blocked = false, incomplete = false, delayMetadata = false } = {}) {
   const listeners = new Map();
   const frames = [];
-  const events = { READY: "ready", PLAY: "play", PLAY_PROGRESS: "progress", PAUSE: "pause", FINISH: "finish", ERROR: "error" };
-  const sounds = [
+  const events = { READY: "ready", PLAY: "play", PLAY_PROGRESS: "progress", LOAD_PROGRESS: "load", PAUSE: "pause", FINISH: "finish", ERROR: "error" };
+  const fullSounds = [
     { id: 42, title: "First", duration: 100000, permalink: "first", permalink_url: "https://soundcloud.com/artist/first", user: { username: "Artist" } },
     { id: 84, title: "Second", duration: 120000, permalink: "second", permalink_url: "https://soundcloud.com/artist/second", user: { username: "Artist" } },
   ];
+  const sounds = fullSounds.map((sound, index) => incomplete && index === 1 ? { id: sound.id, policy: "ALLOW" } : sound);
+  const metadataRequests = [];
   const emit = (name, payload) => { for (const listener of listeners.get(name) || []) listener(payload); };
   const widget = {
     index: 0, paused: true, seeks: [], pauses: 0,
@@ -24,6 +26,11 @@ async function setup({ blocked = false } = {}) {
       if (name === events.READY) queueMicrotask(listener);
     },
     getSounds: callback => queueMicrotask(() => callback(sounds)),
+    getCurrentSound(callback) {
+      const sound = fullSounds[this.index];
+      if (delayMetadata) metadataRequests.push(() => callback(sound));
+      else queueMicrotask(() => callback(sound));
+    },
     getCurrentSoundIndex(callback) { const index = this.index; queueMicrotask(() => callback(index)); },
     isPaused(callback) { const paused = this.paused; queueMicrotask(() => callback(paused)); },
     skip(index) { this.index = index; },
@@ -44,12 +51,40 @@ async function setup({ blocked = false } = {}) {
   vm.runInContext(source, context);
   const result = await context.createSoundCloudSource({
     playlistId: 123, secretToken: "s-test", playlistUrl: "https://soundcloud.com/artist/sets/test/s-test",
-    videos: { first: "video/first.mp4" },
+    videos: { first: "video/first.mp4", second: "video/second.mp4" },
   });
-  return { ...result, widget, emit, events, frames };
+  return { ...result, widget, emit, events, frames, metadataRequests };
 }
 
 (async () => {
+  {
+    const { audio, tracks } = await setup({ incomplete: true });
+    assert.equal(tracks[1].title, "Track 2", "Incomplete entries must never produce blank titles");
+    assert.equal(tracks[1].video, null);
+    let updates = 0;
+    audio.addEventListener("loadedmetadata", () => { updates++; });
+    audio.src = "soundcloud:84";
+    audio.load();
+    await flush();
+    assert.equal(tracks[1].title, "Second");
+    assert.equal(tracks[1].video, "video/second.mp4");
+    assert.equal(updates, 1);
+    console.log("PASS incomplete playlist metadata resolves the selected track's title and video");
+  }
+  {
+    const { audio, tracks, metadataRequests } = await setup({ incomplete: true, delayMetadata: true });
+    let updates = 0;
+    audio.addEventListener("loadedmetadata", () => { updates++; });
+    audio.src = "soundcloud:84";
+    audio.load();
+    audio.src = "soundcloud:42";
+    audio.load();
+    metadataRequests[0]();
+    await flush();
+    assert.equal(updates, 0, "An old metadata callback cannot rename the current track");
+    assert.equal(tracks[0].title, "First");
+    console.log("PASS stale metadata is ignored after a track change");
+  }
   {
     const page = await setup();
     assert.equal(page.tracks.length, 2);
@@ -136,5 +171,5 @@ async function setup({ blocked = false } = {}) {
     assert.equal(audio.pending, null);
     console.log("PASS cancelling blocked playback clears the pending attempt and timer");
   }
-  console.log("5 SoundCloud scenarios passed.");
+  console.log("7 SoundCloud scenarios passed.");
 })().catch(error => { console.error(error); process.exitCode = 1; });

@@ -45,6 +45,15 @@ export async function createSoundCloudSource(config) {
     }));
   });
 
+  const toTrack = (sound, index) => ({
+    title: typeof sound.title === "string" && sound.title.trim() ? sound.title : `Track ${index + 1}`,
+    file: `soundcloud:${sound.id}`,
+    video: config.videos?.[sound.permalink] || config.videos?.[sound.id] || null,
+    url: sound.permalink_url || config.playlistUrl,
+    artist: sound.user?.username || "JiKay",
+  });
+  const tracks = sounds.map(toTrack);
+
   class SoundCloudAudio extends EventTarget {
     paused = true;
     ended = false;
@@ -58,6 +67,7 @@ export async function createSoundCloudSource(config) {
     position = 0;
     relativePosition = 0;
     autoplay = false;
+    metadataPending = false;
 
     constructor() {
       super();
@@ -76,6 +86,7 @@ export async function createSoundCloudSource(config) {
           this.ended = false;
           this.error = null;
           this.confirmedPlayback = true;
+          this.refreshMetadata();
           this.settle();
           this.dispatchEvent(new Event("playing"));
         });
@@ -117,6 +128,23 @@ export async function createSoundCloudSource(config) {
         this.settle(this.error);
         this.dispatchEvent(new Event("error"));
       }));
+      widget.bind(events.LOAD_PROGRESS, () => this.refreshMetadata());
+    }
+
+    refreshMetadata() {
+      const selected = sounds[this.expectedIndex];
+      if (!selected || selected.title?.trim() || this.metadataPending) return;
+      const version = this.version;
+      const soundIndex = this.expectedIndex;
+      this.metadataPending = true;
+      widget.getCurrentSound(sound => {
+        if (version !== this.version) return;
+        this.metadataPending = false;
+        if (String(sound?.id) !== String(selected.id) || !sound.title?.trim()) return;
+        sounds[soundIndex] = { ...selected, ...sound };
+        Object.assign(tracks[soundIndex], toTrack(sounds[soundIndex], soundIndex));
+        this.dispatchEvent(new Event("loadedmetadata"));
+      });
     }
 
     settle(error) {
@@ -138,11 +166,13 @@ export async function createSoundCloudSource(config) {
       this.confirmedPlayback = false;
       this.position = 0;
       this.relativePosition = 0;
+      this.metadataPending = false;
       this.expectedIndex = sounds.findIndex(sound => `soundcloud:${sound.id}` === this.src);
       widget.skip(this.expectedIndex);
       widget.seekTo(0);
       // Do not cancel the widget's automatic start when this selection should play.
       if (!this.autoplay) widget.pause();
+      this.refreshMetadata();
     }
 
     play() {
@@ -153,7 +183,7 @@ export async function createSoundCloudSource(config) {
         const timer = setTimeout(() => {
           this.wanted = false;
           widget.pause();
-          this.settle(new DOMException("Press play to listen", "NotAllowedError"));
+          this.settle(new DOMException("press play", "NotAllowedError"));
         }, 8000);
         this.pending = { resolve, reject, timer };
       });
@@ -174,12 +204,6 @@ export async function createSoundCloudSource(config) {
 
   return {
     audio: new SoundCloudAudio(),
-    tracks: sounds.map(sound => ({
-      title: sound.title,
-      file: `soundcloud:${sound.id}`,
-      video: config.videos?.[sound.permalink] || config.videos?.[sound.id] || null,
-      url: sound.permalink_url || config.playlistUrl,
-      artist: sound.user?.username || "JiKay",
-    })),
+    tracks,
   };
 }
