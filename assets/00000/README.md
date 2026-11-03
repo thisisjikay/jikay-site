@@ -158,6 +158,30 @@ python3 tools/generate-00000-video.py "/path/to/Cozy Campfire At Night.mp4" \
   --name take-it-back --duration 11.25 --signal 0.45 --gamma 1 --no-tracking
 ```
 
+Bird Call uses `video/bird-call-loop.mp4`: a silent ten-second, 1280 × 720
+monochrome loop from the supplied bird-and-city footage in `1103.mp4`. A two-second
+cosine dissolve joins the ends. The mix uses 64% signal / 36% television snow,
+scanlines and a vignette, without tracking wobble, tearing or rolling bars.
+Its mapping uses the SoundCloud URL name `bird-call`; the matching still is
+`video/bird-call-poster.jpg`.
+
+```sh
+python3 tools/generate-00000-video.py "/path/to/1103.mp4" \
+  --name bird-call --duration 12 --signal 0.64 --gamma 1 --no-tracking
+```
+
+Almost Never Was uses `video/almost-never-was-loop.mp4`: a silent 9.25-second,
+1280 × 720 monochrome loop from the sheep footage in `1103(1).mp4`. A two-second
+cosine dissolve joins the ends. The mix uses 64% signal / 36% television snow,
+scanlines and a vignette, without tracking wobble, tearing or rolling bars.
+Its mapping uses the SoundCloud URL name `almost-never-was`; the matching still is
+`video/almost-never-was-poster.jpg`.
+
+```sh
+python3 tools/generate-00000-video.py "/path/to/1103(1).mp4" \
+  --name almost-never-was --duration 11.25 --signal 0.64 --gamma 1 --no-tracking
+```
+
 ## Use local audio files instead
 
 Remove the `soundcloud` section from `playlist.json` to use the local `tracks` list instead.
