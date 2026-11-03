@@ -7,6 +7,9 @@ const toggle = document.querySelector("#toggle-playback");
 const next = document.querySelector("#next-track");
 const scrubber = document.querySelector("#scrubber");
 const songPosition = document.querySelector("#song-position");
+const room = document.querySelector(".listening-room");
+const volumeControl = document.querySelector(".volume-control");
+const volumeInput = document.querySelector("#volume");
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
 let audio = document.querySelector("#music");
@@ -22,6 +25,8 @@ let titleStyle = "original";
 let backgroundFile = fallbackVideo;
 let scrubbing = false;
 let scrubSelection = null;
+let volume = 1;
+let fullscreenPending = false;
 const failedTracks = new Set();
 
 function showStatus(message = "") {
@@ -142,7 +147,7 @@ function handleAudioFailure(version) {
 }
 
 async function play() {
-  if (!tracks.length) return;
+  if (!tracks.length || toggle.disabled) return;
   const version = selection;
   intendedPlaying = true;
   showStatus("Loading…");
@@ -252,11 +257,71 @@ function step(direction) {
   selectTrack(index + direction, shouldPlay);
 }
 
-previous.addEventListener("click", () => step(-1));
-next.addEventListener("click", () => step(1));
-toggle.addEventListener("click", () => {
+function togglePlayback() {
+  if (toggle.disabled) return;
   if (intendedPlaying) pause();
   else void play();
+}
+
+function seekByFraction(direction) {
+  const duration = audio.duration;
+  if (songPosition.disabled || !Number.isFinite(duration) || duration <= 0 || scrubbing) return;
+  const position = Number.isFinite(audio.currentTime) ? audio.currentTime : 0;
+  try {
+    audio.currentTime = Math.max(0, Math.min(duration, position + direction * duration * 0.05));
+  } catch {
+    showStatus("Couldn’t seek. Try again.");
+  }
+  updateProgress();
+}
+
+async function toggleFullscreen() {
+  if (fullscreenPending) return;
+  fullscreenPending = true;
+  try {
+    if (document.fullscreenElement) await document.exitFullscreen();
+    else if (document.documentElement.requestFullscreen && document.fullscreenEnabled !== false) {
+      await document.documentElement.requestFullscreen();
+    } else {
+      showStatus("Fullscreen isn’t available in this browser.");
+    }
+  } catch {
+    showStatus("Couldn’t enter fullscreen. Try again in your browser.");
+  } finally {
+    fullscreenPending = false;
+  }
+}
+
+previous.addEventListener("click", () => step(-1));
+next.addEventListener("click", () => step(1));
+toggle.addEventListener("click", togglePlayback);
+
+volumeInput.addEventListener("input", () => {
+  volume = Math.max(0, Math.min(1, Number(volumeInput.value) / 100));
+  audio.volume = volume;
+  volumeInput.setAttribute("aria-valuetext", `${Math.round(volume * 100)}%`);
+  volumeControl.style.setProperty("--volume", `${volume * 100}%`);
+  volumeControl.dataset.muted = String(volume === 0);
+});
+
+room.addEventListener("click", event => {
+  if (event.defaultPrevented || event.target.closest("a, button, input, select, textarea, [contenteditable], [role='button'], [role='slider'], .transport, .scrubber, .volume-control")) return;
+  if (!intendedPlaying) void play();
+});
+
+document.addEventListener("keydown", event => {
+  if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey || event.isComposing) return;
+  if (event.target.closest("input, textarea, select, [contenteditable], [role='textbox'], [role='slider']")) return;
+  if (event.key === " " && event.target.closest("button, [role='button']")) return;
+  const key = event.key.toLowerCase();
+  if (!["f", " ", ".", ",", "arrowleft", "arrowright"].includes(key)) return;
+  event.preventDefault();
+  if (event.repeat && key !== "arrowleft" && key !== "arrowright") return;
+  if (key === "f") void toggleFullscreen();
+  else if (key === " ") togglePlayback();
+  else if (key === ".") step(1);
+  else if (key === ",") step(-1);
+  else seekByFraction(key === "arrowleft" ? -1 : 1);
 });
 
 songPosition.addEventListener("pointerdown", () => { scrubSelection = selection; });
@@ -308,7 +373,7 @@ async function initialise() {
       fallbackVideo = playlist.fallbackVideo;
     }
     if (playlist.soundcloud?.playlistId) {
-      const { createSoundCloudSource } = await import("./soundcloud.js");
+      const { createSoundCloudSource } = await import("./soundcloud.js?v=controls-1");
       const source = await createSoundCloudSource(playlist.soundcloud);
       audio = source.audio;
       tracks = source.tracks;
@@ -329,6 +394,8 @@ async function initialise() {
       return;
     }
 
+    audio.volume = volume;
+    volumeInput.disabled = false;
     previous.disabled = false;
     next.disabled = false;
     selectTrack(Math.floor(Math.random() * tracks.length), true);

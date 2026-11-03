@@ -3,7 +3,7 @@
 THESIS: A listening room tuned between channels; the music and television snow fill the screen.
 OWN-WORLD: Monochrome CRT texture, white phosphor lettering, solid white circular transport controls.
 STORY: Arrive on a random song, listen, move through the collection, or return home.
-FIRST VIEWPORT: Full-bleed video, title at the exact centre, a small back link top left, transport bottom centre.
+FIRST VIEWPORT: Full-bleed video, title at the exact centre, back top left, volume top right, transport bottom centre and a slim bottom progress line.
 FORM: The user-specified single-screen composition and approved CRT typography preview; no concept seed required.
 -->
 <html lang="en">
@@ -33,8 +33,8 @@ FORM: The user-specified single-screen composition and approved CRT typography p
     <link rel="icon" type="image/png" sizes="32x32" href="../assets/icons/favicon-32.png" />
     <link rel="apple-touch-icon" href="../assets/icons/apple-touch-icon.png" />
     <link rel="preload" href="../assets/fonts/VT323-Regular.ttf" as="font" type="font/ttf" crossorigin />
-    <link rel="stylesheet" href="styles.css" />
-    <script type="module" src="player.js"></script>
+    <link rel="stylesheet" href="styles.css?v=controls-1" />
+    <script type="module" src="player.js?v=controls-1"></script>
     <script defer src="title-fit.js"></script>
   </head>
   <body>
@@ -44,6 +44,11 @@ FORM: The user-specified single-screen composition and approved CRT typography p
       </div>
 
       <a class="back-link" href="../"><span aria-hidden="true">&lt;</span> back</a>
+
+      <div class="volume-control">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9v6h4l5 4V5L7 9z" /><path class="volume-control__waves" d="M16 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14" /></svg>
+        <input id="volume" class="volume-control__slider" type="range" min="0" max="100" step="1" value="100" aria-label="Volume" aria-valuetext="100%" disabled />
+      </div>
 
       <div class="now-playing">
         <h1 id="track-title">00000</h1>

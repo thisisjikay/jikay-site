@@ -29,6 +29,14 @@ hit area and safe-area clearance. Tap/drag or keyboard seeking changes only song
 position, preserves pause state, and resets on track changes. Keep transport controls
 clear of its hit area; metadata and social preview wording remain untouched.
 
+The top-right volume slider aligns with the back link, using a small white speaker
+icon, a thin line and a 44px touch area. Default to full volume per visit and retain
+the chosen level across songs. Background/title/status clicks start paused playback
+only; exclude all controls. F toggles whole-document fullscreen, Space toggles
+play/pause, period/comma move next/previous, and arrows seek 5% of song duration.
+Preserve playing/paused state during seeking and track changes. Focused sliders and
+buttons retain native keyboard behaviour; ignore editable fields and modified keys.
+
 Media lives in `assets/00000/`, with one hand-edited configuration. The user subsequently
 supplied a private 00000 SoundCloud playlist, now the active audio source. Use the official
 Widget API to fetch titles/order and control playback. The user explicitly removed the

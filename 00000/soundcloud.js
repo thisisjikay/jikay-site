@@ -70,6 +70,18 @@ export async function createSoundCloudSource(config) {
     metadataPending = false;
     seekTarget = null;
     seekDeadline = 0;
+    volumeLevel = 1;
+
+    get volume() {
+      return this.volumeLevel;
+    }
+
+    set volume(value) {
+      if (!Number.isFinite(value)) return;
+      this.volumeLevel = Math.max(0, Math.min(1, value));
+      widget.setVolume(this.volumeLevel * 100);
+      this.dispatchEvent(new Event("volumechange"));
+    }
 
     get currentTime() {
       return this.position / 1000;
@@ -209,6 +221,7 @@ export async function createSoundCloudSource(config) {
       this.seekTarget = null;
       this.expectedIndex = sounds.findIndex(sound => `soundcloud:${sound.id}` === this.src);
       widget.skip(this.expectedIndex);
+      widget.setVolume(this.volumeLevel * 100);
       widget.seekTo(0);
       // Do not cancel the widget's automatic start when this selection should play.
       if (!this.autoplay) widget.pause();

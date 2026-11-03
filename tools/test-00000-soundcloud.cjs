@@ -19,7 +19,7 @@ async function setup({ blocked = false, incomplete = false, delayMetadata = fals
   const metadataRequests = [];
   const emit = (name, payload) => { for (const listener of listeners.get(name) || []) listener(payload); };
   const widget = {
-    index: 0, paused: true, seeks: [], pauses: 0,
+    index: 0, paused: true, seeks: [], pauses: 0, volumes: [],
     bind(name, listener) {
       if (!listeners.has(name)) listeners.set(name, []);
       listeners.get(name).push(listener);
@@ -35,6 +35,7 @@ async function setup({ blocked = false, incomplete = false, delayMetadata = fals
     isPaused(callback) { const paused = this.paused; queueMicrotask(() => callback(paused)); },
     skip(index) { this.index = index; },
     seekTo(position) { this.seeks.push(position); },
+    setVolume(value) { this.volumes.push(value); },
     pause() { this.pauses++; const changed = !this.paused; this.paused = true; if (changed) queueMicrotask(() => emit(events.PAUSE)); },
     play() { if (!blocked) { this.paused = false; queueMicrotask(() => emit(events.PLAY)); } },
   };
@@ -57,6 +58,30 @@ async function setup({ blocked = false, incomplete = false, delayMetadata = fals
 }
 
 (async () => {
+  {
+    const { audio, widget } = await setup();
+    assert.equal(audio.volume, 1);
+    audio.volume = 0.35;
+    assert.equal(audio.volume, 0.35);
+    assert.equal(widget.volumes.at(-1), 35);
+    audio.src = "soundcloud:42";
+    audio.load();
+    audio.src = "soundcloud:84";
+    audio.load();
+    assert.equal(widget.volumes.at(-1), 35, "Track loads retain the requested volume");
+    assert.ok(audio.paused, "Volume changes must never start playback");
+    audio.volume = 0;
+    assert.equal(widget.volumes.at(-1), 0);
+    audio.volume = 2;
+    assert.equal(widget.volumes.at(-1), 100);
+    audio.volume = -1;
+    assert.equal(widget.volumes.at(-1), 0);
+    const count = widget.volumes.length;
+    audio.volume = NaN;
+    audio.volume = Infinity;
+    assert.equal(widget.volumes.length, count);
+    console.log("PASS normalized volume conversion, clamping, retention and pause preservation");
+  }
   {
     const { audio, widget, emit, events } = await setup();
     audio.src = "soundcloud:42";
@@ -202,5 +227,5 @@ async function setup({ blocked = false, incomplete = false, delayMetadata = fals
     assert.equal(audio.pending, null);
     console.log("PASS cancelling blocked playback clears the pending attempt and timer");
   }
-  console.log("8 SoundCloud scenarios passed.");
+  console.log("9 SoundCloud scenarios passed.");
 })().catch(error => { console.error(error); process.exitCode = 1; });

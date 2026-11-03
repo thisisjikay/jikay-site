@@ -22,6 +22,34 @@ Home or End. Seeking preserves the song's playing or paused state and leaves its
 independently looping video alone. The bar resets on track changes and stays disabled
 until the track duration is known.
 
+## Volume and shortcuts
+
+The top-right slider adjusts music volume from 0–100%. Each visit starts at 100%;
+your setting stays in place when changing songs during that visit. Volume changes
+never start playback, and background videos remain muted. Some mobile browsers
+reserve audio volume for the device's physical/system volume controls.
+
+Click the background, track title or status to start a paused song. Clicking while
+playing does nothing. Links, buttons, the volume control and the scrub bar keep
+their own actions.
+
+| Key | Action |
+| --- | --- |
+| F | Toggle fullscreen; Escape exits using the browser's normal behaviour |
+| Space | Toggle play/pause |
+| . | Next track |
+| , | Previous track |
+| Left / Right | Seek backwards/forwards by 5% of the current song's duration |
+
+A 5% jump is six seconds for a two-minute song, or three minutes for an hour-long
+song. Seeking stops at the song boundaries and preserves the playing/paused state.
+Previous/next also preserve that state. Focused sliders keep their native keyboard
+controls, and Space activates a focused button normally. Shortcuts ignore text
+fields, composition and Ctrl/Command/Alt combinations. Holding an arrow repeats
+seeking; other shortcuts require a new press. Fullscreen includes the entire page
+and controls where the browser supports it; unsupported or refused requests show
+a short status message without interrupting playback.
+
 ## Update the SoundCloud playlist
 
 Add, remove or reorder songs in the same SoundCloud playlist. The page reads its current
@@ -35,7 +63,7 @@ If you reset the private share link, update `secretToken` and `playlistUrl` to m
 If you switch to another playlist, also update `playlistId` from its official embed code.
 SoundCloud remains the streaming provider and requires an internet connection.
 The page automatically requests playback on load. Browsers that block audible autoplay still
-require pressing the centre play button. Open the HTTP preview below rather than the
+require a gesture: press play or click the background/title. Open the HTTP preview below rather than the
 HTML file directly; browser security blocks the module and playlist loading over `file://`.
 
 ## Give a SoundCloud song its own video
